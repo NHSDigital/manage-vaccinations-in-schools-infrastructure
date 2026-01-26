@@ -1,0 +1,14 @@
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+venv/
+*.log
+.DS_Store
+.bundle
+.env
+.env.local
+.envrc
+.idea
+.vscode
+*.zip

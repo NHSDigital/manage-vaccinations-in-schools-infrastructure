@@ -1,0 +1,17 @@
+{
+  "rules": [
+    {
+      "action": {
+        "type": "expire"
+      },
+      "description": "Expire images older than 3 months",
+      "rulePriority": 1,
+      "selection": {
+        "countNumber": 90,
+        "countType": "sinceImagePushed",
+        "countUnit": "days",
+        "tagStatus": "any"
+      }
+    }
+  ]
+}

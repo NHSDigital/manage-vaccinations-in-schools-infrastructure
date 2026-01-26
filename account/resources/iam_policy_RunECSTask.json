@@ -1,0 +1,43 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeSubnets",
+        "ecs:RegisterTaskDefinition",
+        "ecs:DeregisterTaskDefinition",
+        "ecs:DescribeTaskDefinition",
+        "ecs:ListTaskDefinitions",
+        "ecs:DescribeClusters",
+        "ecs:DescribeTasks",
+        "ecs:DescribeTaskSets",
+        "ecs:StartTask",
+        "ecs:ListClusters",
+        "ecs:ListContainerInstances",
+        "ecs:ListTaskDefinitionFamilies",
+        "ecs:ListTasks",
+        "ecs:RunTask",
+        "ecs:StopTask",
+        "ecr:PutImage",
+        "ecr:InitiateLayerUpload",
+        "ecr:UploadLayerPart",
+        "ecr:CompleteLayerUpload"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ]
+    },
+    {
+      "Action": [
+        "iam:PassRole"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:iam::*:role/EcsTaskRole-*",
+        "arn:aws:iam::*:role/EcsTaskExecutionRole-*"
+      ]
+    }
+  ],
+  "Version": "2012-10-17"
+}

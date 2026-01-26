@@ -1,0 +1,16 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "rds:CreateDBClusterSnapshot",
+        "rds:DescribeDBClusterSnapshots"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ],
+      "Sid": "Statement1"
+    }
+  ],
+  "Version": "2012-10-17"
+}

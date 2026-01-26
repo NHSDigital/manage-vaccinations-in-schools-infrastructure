@@ -1,0 +1,18 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "ssmmessages:CreateControlChannel",
+        "ssmmessages:CreateDataChannel",
+        "ssmmessages:OpenControlChannel",
+        "ssmmessages:OpenDataChannel"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ],
+      "Sid": "Statement1"
+    }
+  ],
+  "Version": "2012-10-17"
+}

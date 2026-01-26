@@ -1,0 +1,6 @@
+awscli      2.27.46
+terraform   1.13.3
+tflint      0.55.1
+pre-commit  latest
+uv          latest
+python      3.14

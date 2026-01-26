@@ -1,0 +1,37 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "ecs:UpdateService",
+        "ecs:DescribeServices",
+        "ecs:ListServices",
+        "ecs:RegisterTaskDefinition",
+        "ecs:DeregisterTaskDefinition",
+        "ecs:DescribeTaskDefinition",
+        "ecs:ListTaskDefinitions",
+        "ecs:DescribeClusters",
+        "ecs:DescribeTasks",
+        "ecs:DescribeTaskSets",
+        "ecs:StartTask",
+        "ecs:ListServiceDeployments",
+        "ecs:DescribeServiceDeployments",
+        "ecs:UntagResource",
+        "ecs:TagResource",
+        "ecs:ListClusters",
+        "ecs:ListContainerInstances",
+        "ecs:ListTaskDefinitionFamilies",
+        "ecs:ListTasks",
+        "ecr:PutImage",
+        "ecr:InitiateLayerUpload",
+        "ecr:UploadLayerPart",
+        "ecr:CompleteLayerUpload",
+        "iam:PassRole"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ]
+    }
+  ],
+  "Version": "2012-10-17"
+}

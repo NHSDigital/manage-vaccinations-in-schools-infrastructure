@@ -1,0 +1,30 @@
+repos:
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.105.0
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_tflint
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: pretty-format-json
+        args: [--autofix]
+        types: [json]
+  - repo: https://github.com/google/yamlfmt
+    rev: v0.21.0
+    hooks:
+      - id: yamlfmt
+        types: [yaml]
+        exclude: ^\.github/.*
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.10
+    hooks:
+      - id: actionlint
+        exclude: ^\.github/workflows/ci-templates/.*
+        files: ^\.github/workflows/.*\.(ya?ml|json)$
+  - repo: https://github.com/hukkin/mdformat
+    rev: '1.0.0'
+    hooks:
+      - id: mdformat
+        types: [markdown]
+        additional_dependencies: ['mdformat-gfm']

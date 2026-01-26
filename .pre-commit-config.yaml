@@ -15,7 +15,6 @@ repos:
     hooks:
       - id: yamlfmt
         types: [yaml]
-        exclude: ^\.github/.*
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.10
     hooks:

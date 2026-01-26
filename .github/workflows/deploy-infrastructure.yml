@@ -1,0 +1,103 @@
+name: Deploy infrastructure
+run-name: Deploy infrastructure for ${{ inputs.environment }}
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: Deployment environment
+        required: true
+        type: string
+      git_ref_to_deploy:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Deployment environment
+        required: true
+        type: string
+      git_ref_to_deploy:
+        description: The git commit SHA to deploy.
+        required: false
+        type: string
+permissions: {}
+env:
+  environment: ${{ inputs.environment }}
+  git_ref_to_deploy: ${{ inputs.git_ref_to_deploy || github.ref_name }}
+  aws_role: ${{ inputs.environment == 'production' && 'arn:aws:iam::820242920762:role/GithubDeployMavisAndInfrastructure' || 'arn:aws:iam::393416225559:role/GithubDeployMavisAndInfrastructure' }}
+  aws_account_id: ${{ inputs.environment == 'production' && '820242920762' || '393416225559' }}
+concurrency:
+  group: deploy-infrastructure-${{ inputs.environment }}
+defaults:
+  run:
+    working-directory: terraform/app
+jobs:
+  plan:
+    name: Terraform plan
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.git_ref_to_deploy }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ env.aws_role }}
+          aws-region: eu-west-2
+      - name: Install terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.3
+      - name: Terraform Plan
+        id: plan
+        run: |
+          set -e
+          terraform init -backend-config="env/$environment-backend.hcl" -upgrade
+          terraform plan \
+          -var-file="env/$environment.tfvars" \
+          -out ${{ runner.temp }}/tfplan | tee ${{ runner.temp }}/tf_stdout
+          TF_EXIT_CODE="${PIPESTATUS[0]}"
+          cat ${{ runner.temp }}/tf_stdout
+          if [ "$TF_EXIT_CODE" -eq 1 ]; then
+              exit "$TF_EXIT_CODE"
+          fi
+          ../scripts/validate_plan.sh ${{ runner.temp }}/tf_stdout
+      - name: Upload artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: tfplan_infrastructure-${{ inputs.environment }}
+          path: ${{ runner.temp }}/tfplan
+  apply:
+    name: Terraform apply
+    runs-on: ubuntu-latest
+    needs: plan
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.git_ref_to_deploy }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ env.aws_role }}
+          aws-region: eu-west-2
+      - name: Download artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: tfplan_infrastructure-${{ inputs.environment }}
+          path: ${{ runner.temp }}
+      - name: Install terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.3
+      - name: Apply the changes
+        run: |
+          set -e
+          terraform init -backend-config="env/$environment-backend.hcl" -upgrade
+          terraform apply ${{ runner.temp }}/tfplan

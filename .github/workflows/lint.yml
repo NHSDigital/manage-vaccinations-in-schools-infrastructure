@@ -1,0 +1,20 @@
+name: Lint
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install tooling
+        uses: jdx/mise-action@v3
+        with:
+          install_args: python tflint terraform
+      - name: Install pre-commit
+        run: pip install pre-commit==3.7.0
+      - name: Run pre-commit
+        run: pre-commit run --all-files

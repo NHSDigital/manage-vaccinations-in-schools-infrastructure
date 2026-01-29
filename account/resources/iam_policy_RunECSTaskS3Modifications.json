@@ -1,0 +1,23 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:s3:::mavis-end-to-end-test-reports",
+      "Sid": "ListReportsBucket"
+    },
+    {
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:s3:::mavis-end-to-end-test-reports/*",
+      "Sid": "ManageReportsObjects"
+    }
+  ],
+  "Version": "2012-10-17"
+}

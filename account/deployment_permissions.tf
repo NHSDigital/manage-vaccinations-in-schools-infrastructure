@@ -3,8 +3,11 @@ resource "aws_iam_role" "mavis_deploy" {
   name        = "GithubDeployMavisAndInfrastructure"
   description = "Role allowing terraform deployment from github workflows"
   assume_role_policy = templatefile("resources/iam_role_github_trust_policy_${var.environment}.json.tftpl", {
-    account_id      = var.account_id
-    repository_list = ["repo:nhsuk/manage-vaccinations-in-schools"]
+    account_id = var.account_id
+    repository_list = [
+      "repo:nhsuk/manage-vaccinations-in-schools",
+      "repo:NHSDigital/manage-vaccinations-in-schools-infrastructure"
+    ]
   })
 }
 
@@ -28,8 +31,11 @@ resource "aws_iam_role" "data_replication_deploy" {
   name        = "GithubDeployDataReplicationInfrastructure"
   description = "Role to be assumed by github workflows dealing with the creation and destruction of the data-replication infrastructure."
   assume_role_policy = templatefile("resources/iam_role_github_trust_policy_${var.environment}.json.tftpl", {
-    account_id      = var.account_id
-    repository_list = ["repo:nhsuk/manage-vaccinations-in-schools"]
+    account_id = var.account_id
+    repository_list = [
+      "repo:nhsuk/manage-vaccinations-in-schools",
+      "repo:NHSDigital/manage-vaccinations-in-schools-infrastructure"
+    ]
   })
 }
 
@@ -54,8 +60,11 @@ resource "aws_iam_role" "data_replication_snapshot" {
   name        = "DatabaseSnapshotRole"
   description = "Role to be assumed by the data replication workflow for taking on-demand DB snapshots"
   assume_role_policy = templatefile("resources/iam_role_github_trust_policy_${var.environment}.json.tftpl", {
-    account_id      = var.account_id
-    repository_list = ["repo:nhsuk/manage-vaccinations-in-schools"]
+    account_id = var.account_id
+    repository_list = [
+      "repo:nhsuk/manage-vaccinations-in-schools",
+      "repo:NHSDigital/manage-vaccinations-in-schools-infrastructure"
+    ]
   })
 }
 
@@ -79,8 +88,11 @@ resource "aws_iam_role" "monitoring_deploy" {
   name        = "GithubDeployMonitoring"
   description = "Role allowing terraform deployment of monitoring resources from github workflows"
   assume_role_policy = templatefile("resources/iam_role_github_trust_policy_${var.environment}.json.tftpl", {
-    account_id      = var.account_id
-    repository_list = ["repo:nhsuk/manage-vaccinations-in-schools"]
+    account_id = var.account_id
+    repository_list = [
+      "repo:nhsuk/manage-vaccinations-in-schools",
+      "repo:NHSDigital/manage-vaccinations-in-schools-infrastructure"
+    ]
   })
 }
 
@@ -99,18 +111,6 @@ resource "aws_iam_role_policy_attachment" "monitoring_deploy" {
   policy_arn = each.value
 }
 
-################ DMS Policies ################
-
-resource "aws_iam_policy" "dms" {
-  name   = "DMSGithubPolicy"
-  policy = file("resources/iam_policy_DMSGithubPolicy.json")
-}
-
-resource "aws_iam_role_policy_attachment" "mavis_dms" {
-  role       = aws_iam_role.mavis_deploy.name
-  policy_arn = aws_iam_policy.dms.arn
-}
-
 ################ Deploy ECS Service ################
 
 resource "aws_iam_role" "deploy_ecs_service" {
@@ -120,7 +120,8 @@ resource "aws_iam_role" "deploy_ecs_service" {
     account_id = var.account_id,
     repository_list = [
       "repo:nhsuk/manage-vaccinations-in-schools",
-      "repo:NHSDigital/manage-vaccinations-in-schools-reporting"
+      "repo:NHSDigital/manage-vaccinations-in-schools-reporting",
+      "repo:NHSDigital/manage-vaccinations-in-schools-infrastructure"
     ]
   })
 }
@@ -149,11 +150,12 @@ resource "aws_iam_role" "github_assurance" {
   assume_role_policy = templatefile("resources/iam_role_github_trust_policy_${var.environment}.json.tftpl", {
     account_id = var.account_id,
     repository_list = [
+      "repo:nhsuk/manage-vaccinations-in-schools",
       "repo:NHSDigital/manage-vaccinations-in-schools-testing",
-      "repo:nhsuk/manage-vaccinations-in-schools"
+      "repo:NHSDigital/manage-vaccinations-in-schools-infrastructure"
     ]
   })
-  max_session_duration = 14400 # 4 hours
+  max_session_duration = 32400 # 9 hours
 }
 
 resource "aws_iam_policy" "run_ecs_task" {
@@ -163,6 +165,22 @@ resource "aws_iam_policy" "run_ecs_task" {
   lifecycle {
     ignore_changes = [description]
   }
+}
+
+resource "aws_iam_policy" "run_ecs_task_s3_modifications" {
+  count       = var.environment == "development" ? 1 : 0
+  name        = "RunECSTaskS3Modifications"
+  description = "Permissions to manage objects in mavis-end-to-end-test-reports s3 bucket"
+  policy      = file("resources/iam_policy_RunECSTaskS3Modifications.json")
+  lifecycle {
+    ignore_changes = [description]
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "run_ecs_task_s3_modifications" {
+  count      = var.environment == "development" ? 1 : 0
+  role       = aws_iam_role.github_assurance[0].name
+  policy_arn = aws_iam_policy.run_ecs_task_s3_modifications[0].arn
 }
 
 resource "aws_iam_role_policy_attachment" "run_ecs_task_custom" {

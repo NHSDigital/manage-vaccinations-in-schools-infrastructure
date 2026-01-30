@@ -23,8 +23,7 @@ down_time_if_destroyed=(
 "aws_security_group\.rds_security_group"
 "aws_db_subnet_group\.aurora_subnet_group"
 "aws_ecs_cluster\.cluster"
-"aws_ecs_service\.service" #TODO: Remove after release
-"aws_security_group\.ecs_service_sg" #TODO: Remove after release
+"aws_ecs_service\.service"
 "module\.[^.]+\.aws_ecs_service\.this"
 "module\.[^.]+\.aws_security_group"
 )

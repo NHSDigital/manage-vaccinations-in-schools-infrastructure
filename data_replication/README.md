@@ -12,7 +12,7 @@ It creates
 ## Setup
 
 This module is managed via a GitHub Actions workflow. To separate it from the rest of the infrastructure, the workflow uses a dedicated IAM role called `GithubDeployDataReplicationInfrastructure`.
-It is managed in the `terraform/account` module.
+It is managed in the `account` module.
 
 ## Usage
 

@@ -1,5 +1,5 @@
-name: Destroy infrastructure
-run-name: Destroy infrastructure for ${{ inputs.environment }}
+name: Tear down non-production infrastructure
+run-name: Removing AWS reasources for ${{ inputs.environment }}
 on:
   workflow_dispatch:
     inputs:
@@ -8,13 +8,9 @@ on:
         required: true
         type: choice
         options:
-          - qa
-          - test
-          - preview
-          - training
           - sandbox-alpha
           - sandbox-beta
-          - performance
+          - pentest
 env:
   environment: ${{ inputs.environment }}
   aws_role: arn:aws:iam::393416225559:role/GithubDeployMavisAndInfrastructure
@@ -28,7 +24,7 @@ jobs:
     environment: ${{ inputs.environment }}
     defaults:
       run:
-        working-directory: terraform/app
+        working-directory: app
     steps:
       - name: Checkout code
         uses: actions/checkout@v6

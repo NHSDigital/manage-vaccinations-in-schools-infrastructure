@@ -18,7 +18,7 @@ concurrency:
   group: backup-infrastructure-${{ inputs.environment }}
 defaults:
   run:
-    working-directory: terraform/backup/source
+    working-directory: backup/source
 jobs:
   plan:
     name: Terraform plan
@@ -61,7 +61,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: backup_alert_lambda_${{ inputs.environment }}
-          path: terraform/backup/source/lambda/backup_alert_function.zip
+          path: backup/source/lambda/backup_alert_function.zip
   apply:
     name: Terraform apply
     runs-on: ubuntu-latest
@@ -86,7 +86,7 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           name: backup_alert_lambda_${{ inputs.environment }}
-          path: terraform/backup/source/lambda
+          path: backup/source/lambda
       - name: Install terraform
         uses: hashicorp/setup-terraform@v3
         with:

@@ -8,9 +8,9 @@ The infrastructure is organized into several key components:
 
 - **Account Management**: Base AWS account configuration including IAM, S3, and ECR
 - **Application Infrastructure**: Core ECS services, RDS databases, networking, and monitoring
-- **Data Replication**: DMS configurations and replication instance management
+- **Data Replication**: Data replication for environments
 - **Backup Strategy**: Cross-account backup implementation using AWS Backup
-- **Monitoring**: Grafana dashboards and CloudWatch alerting configurations
+- **Monitoring**: Grafana dashboards alerting configurations
 - **Assurance Testing**: Performance and end-to-end testing infrastructure
 
 ## Repository Structure
@@ -19,7 +19,7 @@ The infrastructure is organized into several key components:
 .
 ├── account/            # Account-level resources (IAM, S3, ECR)
 ├── app/                # Core application infrastructure (ECS, RDS, VPC)
-├── data_replication/   # Database migration and replication resources
+├── data_replication/   # Data replication configuration
 ├── backup/             # Cross-account backup implementation
 ├── monitoring/         # Monitoring and alerting configurations
 ├── assurance_testing/  # Performance and end-to-end testing infrastructure

@@ -1,4 +1,3 @@
-* @NHSDigital/mavis @NHSDigital/mavis-infrastructure
+* @NHSDigital/mavis @NHSDigital/mavis-infrastructure @nhsuk/mavis-devs-infrastructure
 .github/ @nhsuk/vaccine-digital-service
 docs/ @nhsuk/vaccine-digital-service
-terraform/ @nhsuk/mavis-devs-infrastructure

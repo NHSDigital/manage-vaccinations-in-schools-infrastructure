@@ -1,0 +1,29 @@
+name: 'Notify approval required'
+description: 'Send Slack notification when approval is required'
+inputs:
+  webhook:
+    description: 'Slack incoming webhook URL'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Notify pending approval
+      env:
+        SLACK_WEBHOOK: ${{ inputs.webhook }}
+      uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
+      with:
+        webhook: ${{ inputs.webhook }}
+        webhook-type: incoming-webhook
+        payload: |-
+          text: ":hourglass: Approval required :hourglass:"
+          blocks:
+            - type: "section"
+              text:
+                type: "mrkdwn"
+                text: "${{ github.workflow }} requires approval"
+            - type: "section"
+              fields:
+                - type: "mrkdwn"
+                  text: "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>"
+                - type: "mrkdwn"
+                  text: "*Triggered by:*\n${{ github.actor }}"

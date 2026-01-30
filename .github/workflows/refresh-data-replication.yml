@@ -54,7 +54,7 @@ env:
   db_snapshot_role: ${{ inputs.environment == 'production' && 'arn:aws:iam::820242920762:role/DatabaseSnapshotRole' || 'arn:aws:iam::393416225559:role/DatabaseSnapshotRole' }}
 defaults:
   run:
-    working-directory: terraform/data_replication
+    working-directory: data_replication
 concurrency:
   group: deploy-data-replica-${{ inputs.environment }}
 jobs:
@@ -160,25 +160,9 @@ jobs:
     needs: plan
     if: ${{ inputs.environment == 'production' && github.event_name == 'workflow_dispatch' }}
     steps:
-      - name: Notify pending approval
-        if: inputs.environment == 'production'
-        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
+      - uses: ./.github/actions/notify-approval-required
         with:
           webhook: ${{ secrets.SLACK_MAVIS_TECH_WEBHOOK_URL }}
-          webhook-type: incoming-webhook
-          payload: |
-            text: ":hourglass: Approval required :hourglass:"
-            blocks:
-              - type: "section"
-                text:
-                  type: "mrkdwn"
-                  text: "${{ github.workflow }} requires approval"
-              - type: "section"
-                fields:
-                  - type: "mrkdwn"
-                    text: "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>"
-                  - type: "mrkdwn"
-                    text: "*Triggered by:*\n${{ github.actor }}"
   apply:
     name: Terraform apply
     runs-on: ubuntu-latest

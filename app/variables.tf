@@ -253,6 +253,10 @@ locals {
       {
         name  = "MAVIS_ROOT_URL"
         value = "http://web:${local.container_ports.web}/"
+      },
+      {
+        name  = "HTTP_MODE",
+        value = local.migration_stage_configs[var.migration_stage].reporting_protocol # HTTPS
       }
     ]
   }
@@ -277,6 +281,10 @@ locals {
       {
         name  = "EXPORT_WEB_METRICS"
         value = tostring(local.export_prometheus_metrics)
+      },
+      {
+        name  = "H2C_ENABLED"
+        value = "true"
       }
     ],
     var.enable_mock_careplus_service ? [

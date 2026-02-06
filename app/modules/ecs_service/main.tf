@@ -92,7 +92,6 @@ resource "aws_ecs_service" "this" {
       task_definition,
       desired_count
     ]
-    create_before_destroy = true
   }
 }
 
@@ -107,7 +106,7 @@ resource "aws_ecs_task_definition" "this" {
   container_definitions = jsonencode(concat([
     {
       name                   = var.container_name
-      image                  = "CHANGE_ME"
+      image                  = var.container_image
       essential              = true
       readonlyRootFileSystem = var.readonly_file_system
       portMappings = [

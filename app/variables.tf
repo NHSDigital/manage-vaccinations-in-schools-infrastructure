@@ -273,6 +273,10 @@ locals {
       {
         name  = "EXPORT_PUMA_METRICS"
         value = tostring(local.export_prometheus_metrics)
+      },
+      {
+        name  = "H2C_ENABLED"
+        value = "true"
       }
     ]
   )

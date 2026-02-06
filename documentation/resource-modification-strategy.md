@@ -1,54 +1,90 @@
-# Deployment Strategies and Processes for Terraform Managed Resources
+# Updating ECS service (aws_ecs_service) or ALB target groups (aws_lb_target_group)
 
-Deployment strategies to prevent downtime or to preserve state integrity.
-
-## Updating loadbalancer target groups (aws_lb_target_group)
-
-### Why do we need a unique deployment process for target groups?
-
-AWS' CodeDeploy switches which listener is attached to the blue or green target groups. Some configuration changes
-prevent a target group from being updated in place (e.g. like changing protocol type). Therefore, we need to destroy the
-target groups and recreate them, without destroying the listener/causing downtime.
-
-### The deployment strategy
-
-To prevent downtime we only want to destroy/recreate the target group which is not currently attached to the listener
-and
-then switch the listener over to the newly created target group. Luckily this can be done in a fairly automated way:
-
-1. Identify which target group the listener is currently attached to (lets call this `group-1`)
-1. Update the Terraform configuration of the non-listener-attached target group (e.g. `group-2`) and run
-   `terraform apply`
-1. Do a CodeDeploy deployment to switch the listener forwarding rule to the newly created target group
-   1. After this point `group-1` will no longer attached to the service
-1. Update the Terraform configuration of the remaining target group (e.g. `group-1`) and run `terraform apply`
-
-At the end of these steps the system will be in the desired configuration
-
-## Updating ECS service (aws_ecs_service)
-
-### Why do we need a unique deployment process services
+## Why do we need a unique deployment process services
 
 Some changes are only possible to achieve by recreating the service. The naive Terraform approach of deleting and
-recreating the service is not possible because the service's deployment is controlled by CodeDeploy, this is a built-in
-safety mechanism. Additionally, even if we can circumvent this blocker to deployment recreating the service would
-cause a downtime which can easily be avoided by following the below steps.
+recreating the service is not possible because the service's deployment is controlled by ECS Blue/Green deploy,
+this is a built-in safety mechanism. Additionally, even if we can circumvent this blocker to deployment recreating
+the service would cause a downtime which can easily be avoided by following the below steps.
 
-### The deployment strategy
+## Safer Migration Strategy Using Temporary Resources
 
-For simplicity lets call the existing service `service-a` and the new modified service `service-b`.
+Direct modifications to target groups during blue/green deployments carry significant rollback risks where the system can
+end up in a mixed state with traffic served both on blue and green target groups. In this situation forward fixing becomes
+very difficult and the risk of down time increases significantly. Our approach uses temporary ALB/ECS resources controlled
+through listener rule priorities to ensure a zero down-time deployment process.
 
-1. Update the terraform configuration:
-   1. Create a `service-b` with the new configurations but identical loadbalancer configuration
-   1. Update the wiring to autoscaling/codedeploy/etc to point to `service-b`
-   1. Identify which target group (`blue`/`green`) is currently active (e.g. via aws console)
-      1. Specify this as the variable `active_lb_target_group`
-1. Run the [deploy-application.yml](../../.github/workflows/deploy-application.yml) workflow. This will automatically
-   achieve:
-   1. Running `terraform apply` to deploy the new service and update the CodeDeploy configuration
-      1. At this stage traffic will be going to both `service-a` and `service-b`
-   1. Running a CodeDeploy deployment to switch the traffic to `service-b`
-1. Remove `service-a` and the attached autoscaling configuration from the configuration and run `terraform apply`
-   1. Either manually or via [deploy-infrastructure.yml](../../.github/workflows/deploy-infrastructure.yml)
+For implementation details and template configuration, see:
+[Service Migration Temporary Resources Template](../resources/service_migration_temporary_resources.template.tf)
 
-At the end of these steps a new service will be running with the updated configuration without any downtime
+### Migration Stages
+
+1. **pre-migration-1**:
+
+   - Apply any non-migration changes
+   - Original services remain fully operational
+   - Configured via
+     - `temporary_migration_resources_active=false`
+     - `migration_stage="pre-migration"`
+
+1. **pre-migration-2**:
+
+   - Creates temporary services (`web_service_temp`, `reporting_service_temp`) with listener rules at non-active priorities
+   - Original services remain fully operational
+   - Configured via
+     - `temporary_migration_resources_active=true`
+     - `migration_stage="pre-migration"`
+
+1. **switch-traffic-to-temp**:
+
+   - Updates listener rule priorities to route traffic to temporary services
+   - Original services remain deployed but inactive
+   - Configured via
+     - `temporary_migration_resources_active=true`
+     - `migration_stage="switch-traffic-to-temp"`
+
+1. **replace-service**:
+
+   - Deploys HTTP2-compatible versions to original services
+   - Maintains traffic routing to temporary services during transition
+   - Original services are replaced without serving any traffic
+   - Configured via
+     - `temporary_migration_resources_active=true`
+     - `migration_stage="replace-service"`
+   - Here we will also need to use the `-replace` terraform option on any relevant services/target groups/listener rules. For example:
+     ```
+     -replace module.web_service.aws_ecs_service.this -replace aws_lb_listener_rule.forward_to_app -replace aws_lb_listener_rule.forward_to_test
+     ```
+
+1. **switch-traffic-back-to-original**:
+
+   - Shifts traffic back to upgraded original services
+   - Decommissions temporary resources
+   - Configured via
+     - `temporary_migration_resources_active=true`
+     - `migration_stage="switch-traffic-back-to-original"`
+
+1. **post-migration**:
+
+   - Removes temporary services/resources
+   - Recreated service continues to serve traffic uninterrupted
+   - Configured via
+     - `temporary_migration_resources_active=false`
+     - `migration_stage="switch-traffic-back-to-original"`
+
+### Traffic Control Mechanism
+
+- Listener rule priorities control routing (lower numbers = higher priority)
+- Each stage modifies priorities in `local.migration_stage_configs`
+- Priority changes enable seamless traffic shifts without target group modifications
+- The setup is structured in such a way that only the priorities of the temporary listeners are adjusted up/down keeping the original service listeners' priorities unmodified
+
+### Terraform Implementation
+
+Key resources in \[app/http1_to_http2_migration_resources.tf\]:
+
+- `aws_lb_listener_rule.forward_to_*_temp` - Temporary routing rules
+- `module.web_service_temp` - Temporary ECS service
+- `local.migration_stage_configs` - Stage-specific priority configurations
+
+This approach eliminates direct target group modifications, ensuring clean rollbacks by simply reverting priority changes.

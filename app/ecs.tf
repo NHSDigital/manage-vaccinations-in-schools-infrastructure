@@ -62,7 +62,8 @@ data "aws_iam_role" "ecs_task_role" {
 }
 
 module "web_service" {
-  source = "./modules/ecs_service"
+  container_image = var.HTTP2_compatible_web_image
+  source          = "./modules/ecs_service"
   task_config = {
     environment          = local.web_envs
     secrets              = local.task_secrets["CORE"]
@@ -180,7 +181,8 @@ module "sidekiq_service" {
 }
 
 module "reporting_service" {
-  source = "./modules/ecs_service"
+  container_image = var.HTTP2_compatible_reporting_image
+  source          = "./modules/ecs_service"
   task_config = {
     environment          = local.task_envs["REPORTING"]
     secrets              = local.task_secrets["REPORTING"]
@@ -190,7 +192,7 @@ module "reporting_service" {
     task_role_arn        = data.aws_iam_role.ecs_task_role.arn
     log_group_name       = aws_cloudwatch_log_group.ecs_log_group.name
     region               = var.region
-    health_check_command = ["CMD-SHELL", "wget --no-cache --spider -S http://localhost:${local.container_ports.reporting}/reports/healthcheck || exit 1"]
+    health_check_command = ["CMD-SHELL", local.migration_stage_configs[var.migration_stage].reporting_service_health_check] #wget --no-cache --spider -S --no-check-certificate https://localhost:${local.container_ports.reporting}/reports/healthcheck || exit 1
   }
   network_params = {
     subnets = [aws_subnet.private_subnet_a.id, aws_subnet.private_subnet_b.id]
@@ -247,8 +249,7 @@ module "ops_service" {
     task_role_arn        = data.aws_iam_role.ecs_task_role.arn
     log_group_name       = aws_cloudwatch_log_group.ecs_log_group.name
     region               = var.region
-    health_check_command = ["CMD-SHELL", "echo 'alive' || exit 1"]
-
+    health_check_command = ["CMD-SHELL", "./bin/internal_healthcheck || exit 1"]
   }
   maximum_replica_count = var.enable_ops_service ? 1 : 0
   minimum_replica_count = var.enable_ops_service ? 1 : 0

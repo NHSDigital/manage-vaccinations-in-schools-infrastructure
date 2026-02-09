@@ -249,6 +249,10 @@ locals {
       {
         name  = "SENTRY_ENVIRONMENT"
         value = var.environment
+      },
+      {
+        name  = "HTTP_MODE",
+        value = local.migration_stage_configs[var.migration_stage].reporting_protocol # HTTPS
       }
     ]
   }
@@ -273,6 +277,10 @@ locals {
       {
         name  = "EXPORT_PUMA_METRICS"
         value = tostring(local.export_prometheus_metrics)
+      },
+      {
+        name  = "H2C_ENABLED"
+        value = "true"
       }
     ]
   )

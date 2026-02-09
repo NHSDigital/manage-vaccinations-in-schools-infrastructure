@@ -72,11 +72,12 @@ resource "aws_lb" "app_lb" {
 }
 
 resource "aws_lb_target_group" "blue" {
-  name        = "mavis-blue-${var.environment}"
-  port        = local.container_ports.web
-  protocol    = "HTTP"
-  vpc_id      = aws_vpc.application_vpc.id
-  target_type = "ip"
+  name             = "mavis-blue-${var.environment}"
+  port             = local.container_ports.web
+  protocol         = "HTTP"
+  protocol_version = local.migration_stage_configs[var.migration_stage].web_protocol_version #HTTP2
+  vpc_id           = aws_vpc.application_vpc.id
+  target_type      = "ip"
   health_check {
     path                = "/up"
     protocol            = "HTTP"
@@ -90,11 +91,12 @@ resource "aws_lb_target_group" "blue" {
 }
 
 resource "aws_lb_target_group" "green" {
-  name        = "mavis-green-${var.environment}"
-  port        = local.container_ports.web
-  protocol    = "HTTP"
-  vpc_id      = aws_vpc.application_vpc.id
-  target_type = "ip"
+  name             = "mavis-green-${var.environment}"
+  port             = local.container_ports.web
+  protocol         = "HTTP"
+  protocol_version = local.migration_stage_configs[var.migration_stage].web_protocol_version #HTTP2
+  vpc_id           = aws_vpc.application_vpc.id
+  target_type      = "ip"
   health_check {
     path                = "/up"
     protocol            = "HTTP"
@@ -108,14 +110,15 @@ resource "aws_lb_target_group" "green" {
 }
 
 resource "aws_lb_target_group" "reporting_blue" {
-  name        = "mavis-rep-blue-${var.environment}"
-  port        = local.container_ports.reporting
-  protocol    = "HTTP"
-  vpc_id      = aws_vpc.application_vpc.id
-  target_type = "ip"
+  name             = "mavis-rep-blue-${var.environment}"
+  port             = local.container_ports.reporting
+  protocol         = local.migration_stage_configs[var.migration_stage].reporting_protocol         #HTTPS
+  protocol_version = local.migration_stage_configs[var.migration_stage].reporting_protocol_version #HTTP2
+  vpc_id           = aws_vpc.application_vpc.id
+  target_type      = "ip"
   health_check {
     path                = "/reports/healthcheck"
-    protocol            = "HTTP"
+    protocol            = local.migration_stage_configs[var.migration_stage].reporting_protocol #HTTPS
     port                = "traffic-port"
     matcher             = "200"
     interval            = 10
@@ -126,14 +129,15 @@ resource "aws_lb_target_group" "reporting_blue" {
 }
 
 resource "aws_lb_target_group" "reporting_green" {
-  name        = "mavis-rep-green-${var.environment}"
-  port        = local.container_ports.reporting
-  protocol    = "HTTP"
-  vpc_id      = aws_vpc.application_vpc.id
-  target_type = "ip"
+  name             = "mavis-rep-green-${var.environment}"
+  port             = local.container_ports.reporting
+  protocol         = local.migration_stage_configs[var.migration_stage].reporting_protocol         #HTTPS
+  protocol_version = local.migration_stage_configs[var.migration_stage].reporting_protocol_version #HTTP2
+  vpc_id           = aws_vpc.application_vpc.id
+  target_type      = "ip"
   health_check {
     path                = "/reports/healthcheck"
-    protocol            = "HTTP"
+    protocol            = local.migration_stage_configs[var.migration_stage].reporting_protocol #HTTPS
     port                = "traffic-port"
     matcher             = "200"
     interval            = 10
@@ -183,7 +187,7 @@ resource "aws_lb_listener_certificate" "https_sni_certificates" {
 
 resource "aws_lb_listener_rule" "forward_to_app" {
   listener_arn = aws_lb_listener.app_listener_https.arn
-  priority     = 50000
+  priority     = 49500
   action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.blue.arn

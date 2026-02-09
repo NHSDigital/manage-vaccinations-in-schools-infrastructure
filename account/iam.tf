@@ -120,3 +120,39 @@ resource "aws_iam_policy" "get_s3_object" {
     ignore_changes = [description]
   }
 }
+
+### Health Event Lambda IAM ###
+
+resource "aws_iam_role" "health_event_lambda_execution" {
+  name = "HealthEventLambdaExecutionRole"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "lambda.amazonaws.com"
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "health_event_lambda_basic" {
+  role       = aws_iam_role.health_event_lambda_execution.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+resource "aws_iam_role_policy" "health_event_lambda_ssm_access" {
+  name = "SSMParameterAccess"
+  role = aws_iam_role.health_event_lambda_execution.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["ssm:GetParameter"]
+      Resource = [aws_ssm_parameter.slack_webhook_url.arn]
+    }]
+  })
+}

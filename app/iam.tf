@@ -15,6 +15,11 @@ resource "aws_iam_policy" "vpc_flowlogs" {
   policy = data.aws_iam_policy_document.vpc_flowlogs.json
 }
 
+resource "aws_iam_policy" "secret_rotation_ecs_redeploy" {
+  name   = "secret-rotation-ecs-redeploy-${var.environment}"
+  policy = data.aws_iam_policy_document.secret_rotation_ecs_redeploy.json
+}
+
 ################################# IAM Roles #################################
 
 resource "aws_iam_role" "ecs_task_execution_role" {
@@ -33,6 +38,11 @@ resource "aws_iam_role" "vpc_flowlogs" {
   assume_role_policy = templatefile("templates/iam_assume_role.json.tpl", {
     service_name = "vpc-flow-logs.amazonaws.com"
   })
+}
+
+resource "aws_iam_role" "secret_rotation_lambda" {
+  name               = "secretRotationLambdaRole-${var.environment}"
+  assume_role_policy = templatefile("templates/iam_assume_role.json.tpl", { service_name = "lambda.amazonaws.com" })
 }
 
 ################################# IAM Role/Policy Attachments #################################
@@ -69,4 +79,14 @@ resource "aws_iam_role_policy_attachment" "ecs_deploy" {
 resource "aws_iam_role_policy_attachment" "vpc_create_logs" {
   role       = aws_iam_role.vpc_flowlogs.name
   policy_arn = aws_iam_policy.vpc_flowlogs.arn
+}
+
+resource "aws_iam_role_policy_attachment" "secret_rotation_lambda_basic" {
+  role       = aws_iam_role.secret_rotation_lambda.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+resource "aws_iam_role_policy_attachment" "secret_rotation_ecs_redeploy" {
+  role       = aws_iam_role.secret_rotation_lambda.name
+  policy_arn = aws_iam_policy.secret_rotation_ecs_redeploy.arn
 }

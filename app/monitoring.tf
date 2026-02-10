@@ -23,3 +23,8 @@ resource "aws_cloudwatch_log_group" "ecs_log_group" {
   retention_in_days = var.ecs_log_retention_days
   skip_destroy      = local.is_production
 }
+
+resource "aws_cloudwatch_log_group" "secret_rotation_lambda" {
+  name              = "/aws/lambda/rds-secret-rotation-redeploy-${var.environment}"
+  retention_in_days = var.ecs_log_retention_days
+}

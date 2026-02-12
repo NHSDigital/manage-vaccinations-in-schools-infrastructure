@@ -1,0 +1,255 @@
+{
+  "info": {
+    "description": "Actions for querying JIRA tickets via the REST API",
+    "title": "JIRA Query API",
+    "version": "1.0.0"
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/getLatestReleaseTickets": {
+      "get": {
+        "description": "Finds the most recent release version (format vX.Y.Z) for the MAV project and returns all tickets with that fixVersion.",
+        "operationId": "getLatestReleaseTickets",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "issues": {
+                      "items": {
+                        "properties": {
+                          "assignee": {
+                            "type": "string"
+                          },
+                          "created": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "key": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "summary": {
+                            "type": "string"
+                          },
+                          "updated": {
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "total": {
+                      "description": "Total number of tickets in the release",
+                      "type": "integer"
+                    },
+                    "version": {
+                      "description": "The latest release version name (e.g. 'v6.19.0')",
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "The latest release version and all tickets in that release"
+          }
+        },
+        "summary": "Get all tickets for the most recent release of the MAV project"
+      }
+    },
+    "/getTicket": {
+      "get": {
+        "description": "Retrieves detailed information about a single ticket including description, labels, and priority.",
+        "operationId": "getTicket",
+        "parameters": [
+          {
+            "description": "The JIRA ticket key (e.g. 'MAVIS-123')",
+            "in": "query",
+            "name": "ticketKey",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "assignee": {
+                      "type": "string"
+                    },
+                    "created": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "key": {
+                      "type": "string"
+                    },
+                    "labels": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "priority": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "summary": {
+                      "type": "string"
+                    },
+                    "updated": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Full ticket details"
+          }
+        },
+        "summary": "Get full details of a specific JIRA ticket"
+      }
+    },
+    "/getTicketComments": {
+      "get": {
+        "description": "Retrieves all comments on a ticket including author and timestamp.",
+        "operationId": "getTicketComments",
+        "parameters": [
+          {
+            "description": "The JIRA ticket key (e.g. 'MAVIS-123')",
+            "in": "query",
+            "name": "ticketKey",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "comments": {
+                      "items": {
+                        "properties": {
+                          "author": {
+                            "type": "string"
+                          },
+                          "body": {
+                            "type": "string"
+                          },
+                          "created": {
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "List of comments on the ticket"
+          }
+        },
+        "summary": "Get comments on a specific JIRA ticket"
+      }
+    },
+    "/searchTickets": {
+      "get": {
+        "description": "Runs a JQL (JIRA Query Language) search and returns matching tickets with their key, summary, status, assignee, and description.",
+        "operationId": "searchTickets",
+        "parameters": [
+          {
+            "description": "The JQL query string to search for tickets (e.g. 'project = MAVIS AND status = \"In Progress\"')",
+            "in": "query",
+            "name": "jql",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Maximum number of results to return (default 50)",
+            "in": "query",
+            "name": "maxResults",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "issues": {
+                      "items": {
+                        "properties": {
+                          "assignee": {
+                            "type": "string"
+                          },
+                          "created": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "key": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "summary": {
+                            "type": "string"
+                          },
+                          "updated": {
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "total": {
+                      "description": "Total number of matching tickets",
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Search results with total count and list of matching tickets"
+          }
+        },
+        "summary": "Search for JIRA tickets using a JQL query"
+      }
+    }
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "bedrock:CreateAgent",
+        "bedrock:UpdateAgent",
+        "bedrock:DeleteAgent",
+        "bedrock:GetAgent",
+        "bedrock:ListAgents",
+        "bedrock:PrepareAgent",
+        "bedrock:CreateAgentActionGroup",
+        "bedrock:UpdateAgentActionGroup",
+        "bedrock:DeleteAgentActionGroup",
+        "bedrock:GetAgentActionGroup",
+        "bedrock:ListAgentActionGroups",
+        "bedrock:CreateAgentAlias",
+        "bedrock:UpdateAgentAlias",
+        "bedrock:DeleteAgentAlias",
+        "bedrock:GetAgentAlias",
+        "bedrock:ListAgentAliases",
+        "bedrock:GetAgentVersion",
+        "bedrock:ListAgentVersions",
+        "bedrock:TagResource",
+        "bedrock:UntagResource",
+        "bedrock:ListTagsForResource"
+      ],
+      "Effect": "Allow",
+      "Resource": "*",
+      "Sid": "ManageBedrockAgents"
+    },
+    {
+      "Action": [
+        "lambda:CreateFunction",
+        "lambda:UpdateFunctionCode",
+        "lambda:UpdateFunctionConfiguration",
+        "lambda:DeleteFunction",
+        "lambda:GetFunction",
+        "lambda:GetFunctionConfiguration",
+        "lambda:ListFunctions",
+        "lambda:AddPermission",
+        "lambda:RemovePermission",
+        "lambda:GetPolicy",
+        "lambda:TagResource",
+        "lambda:UntagResource",
+        "lambda:ListTags"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:lambda:eu-west-2:393416225559:function:mavis-*",
+      "Sid": "ManageLambdaFunctions"
+    },
+    {
+      "Action": [
+        "iam:CreateRole",
+        "iam:DeleteRole",
+        "iam:GetRole",
+        "iam:UpdateRole",
+        "iam:TagRole",
+        "iam:UntagRole",
+        "iam:ListRoleTags",
+        "iam:PutRolePolicy",
+        "iam:GetRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:ListRolePolicies",
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:ListAttachedRolePolicies",
+        "iam:PassRole",
+        "iam:ListInstanceProfilesForRole"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:iam::393416225559:role/BedrockAgentRole",
+        "arn:aws:iam::393416225559:role/AgentLambdaRole"
+      ],
+      "Sid": "ManageAgentIAMRoles"
+    },
+    {
+      "Action": [
+        "ssm:PutParameter",
+        "ssm:GetParameter",
+        "ssm:GetParameters",
+        "ssm:DeleteParameter",
+        "ssm:DescribeParameters",
+        "ssm:ListTagsForResource",
+        "ssm:AddTagsToResource",
+        "ssm:RemoveTagsFromResource"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:ssm:eu-west-2:393416225559:parameter/agents/*",
+      "Sid": "ManageSSMParameters"
+    },
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:DeleteLogGroup",
+        "logs:DescribeLogGroups",
+        "logs:PutRetentionPolicy",
+        "logs:DeleteRetentionPolicy",
+        "logs:TagLogGroup",
+        "logs:UntagLogGroup",
+        "logs:ListTagsLogGroup",
+        "logs:TagResource",
+        "logs:UntagResource",
+        "logs:ListTagsForResource"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:logs:eu-west-2:393416225559:log-group:/aws/lambda/mavis-*",
+      "Sid": "ManageCloudWatchLogGroups"
+    },
+    {
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:ListBucket"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:s3:::nhse-mavis-terraform-state",
+        "arn:aws:s3:::nhse-mavis-terraform-state/terraform-agents-*"
+      ],
+      "Sid": "ManageTerraformState"
+    }
+  ],
+  "Version": "2012-10-17"
+}

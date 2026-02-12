@@ -1,0 +1,21 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "bedrock:InvokeAgent"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:bedrock:eu-west-2:393416225559:agent-alias/*",
+      "Sid": "InvokeBedrockAgent"
+    },
+    {
+      "Action": [
+        "s3:GetObject"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:s3:::nhse-mavis-terraform-state/terraform-agents-*",
+      "Sid": "GetTerraformOutputs"
+    }
+  ],
+  "Version": "2012-10-17"
+}

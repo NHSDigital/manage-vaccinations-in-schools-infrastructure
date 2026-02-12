@@ -200,3 +200,63 @@ resource "aws_iam_role_policy_attachment" "run_ecs_task_tagging" {
   role       = aws_iam_role.github_assurance[0].name
   policy_arn = local.base_policies.tagging
 }
+
+################ Deploy Bedrock Agents ################
+
+resource "aws_iam_role" "agents_deploy" {
+  count       = var.environment == "development" ? 1 : 0
+  name        = "GithubDeployAgentsInfrastructure"
+  description = "Role allowing terraform deployment of Bedrock agent resources from github workflows"
+  assume_role_policy = templatefile("resources/iam_role_github_trust_policy_${var.environment}.json.tftpl", {
+    account_id = var.account_id
+    repository_list = [
+      "repo:NHSDigital/manage-vaccinations-in-schools-infrastructure"
+    ]
+  })
+}
+
+resource "aws_iam_policy" "agents_deploy" {
+  count       = var.environment == "development" ? 1 : 0
+  name        = "DeployAgentsResources"
+  description = "Permissions for deploying Bedrock agent infrastructure"
+  policy      = file("resources/iam_policy_DeployAgentsResources.json")
+  lifecycle {
+    ignore_changes = [description]
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "agents_deploy" {
+  for_each   = local.agents_deploy_policies
+  role       = aws_iam_role.agents_deploy[0].name
+  policy_arn = each.value
+}
+
+################ Invoke Bedrock Agent ################
+
+resource "aws_iam_role" "agents_invoke" {
+  count       = var.environment == "development" ? 1 : 0
+  name        = "GithubInvokeBedrockAgent"
+  description = "Role allowing invocation of Bedrock agents from github workflows"
+  assume_role_policy = templatefile("resources/iam_role_github_trust_policy_${var.environment}.json.tftpl", {
+    account_id = var.account_id
+    repository_list = [
+      "repo:NHSDigital/manage-vaccinations-in-schools-infrastructure"
+    ]
+  })
+}
+
+resource "aws_iam_policy" "agents_invoke" {
+  count       = var.environment == "development" ? 1 : 0
+  name        = "InvokeBedrockAgent"
+  description = "Permissions for invoking Bedrock agents and managing output"
+  policy      = file("resources/iam_policy_InvokeBedrockAgent.json")
+  lifecycle {
+    ignore_changes = [description]
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "agents_invoke" {
+  count      = var.environment == "development" ? 1 : 0
+  role       = aws_iam_role.agents_invoke[0].name
+  policy_arn = aws_iam_policy.agents_invoke[0].arn
+}

@@ -11,6 +11,7 @@ jobs:
       matrix:
         working-directory:
           - ./account
+          - ./agents
           - ./app
           - ./assurance_testing
           - ./data_replication

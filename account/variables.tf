@@ -44,4 +44,8 @@ locals {
     deploy_ecs_service = aws_iam_policy.deploy_ecs_service.arn
     run_ecs_task       = aws_iam_policy.run_ecs_task.arn
   }
+
+  agents_deploy_policies = var.environment == "development" ? merge(local.base_policies, {
+    agents_deploy = aws_iam_policy.agents_deploy[0].arn
+  }) : {}
 }

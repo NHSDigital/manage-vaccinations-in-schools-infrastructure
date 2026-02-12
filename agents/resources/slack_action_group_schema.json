@@ -1,0 +1,46 @@
+{
+  "info": {
+    "description": "Actions for sending messages to Slack via incoming webhook",
+    "title": "Slack Notification API",
+    "version": "1.0.0"
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/sendSlackMessage": {
+      "post": {
+        "description": "Sends a formatted message to a Slack channel via an incoming webhook. The message should use Slack mrkdwn syntax: *bold* for headers, bullet points with \u2022, and newlines for structure.",
+        "operationId": "sendSlackMessage",
+        "parameters": [
+          {
+            "description": "The message text to send to Slack, formatted using Slack mrkdwn syntax",
+            "in": "query",
+            "name": "message",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "ok": {
+                      "description": "Whether the message was sent successfully",
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Message sent successfully"
+          }
+        },
+        "summary": "Send a message to Slack"
+      }
+    }
+  }
+}

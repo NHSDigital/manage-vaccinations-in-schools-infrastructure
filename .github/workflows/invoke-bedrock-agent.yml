@@ -1,0 +1,96 @@
+name: Invoke Bedrock agent
+run-name: Invoke Bedrock agent (${{ inputs.instructions_file }})
+on:
+  workflow_dispatch:
+    inputs:
+      instructions_file:
+        description: Path to the markdown instructions file in the repository
+        required: true
+        type: string
+        default: agents/instructions/default.md
+      jql_query:
+        description: "Optional JQL query override (leave empty to use the query in the instructions file)"
+        required: false
+        type: string
+      output_s3_prefix:
+        description: S3 key prefix for the output file
+        required: false
+        type: string
+        default: agent-output
+permissions: {}
+env:
+  aws_role: arn:aws:iam::393416225559:role/GithubInvokeBedrockAgent
+jobs:
+  invoke:
+    name: Invoke agent
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ env.aws_role }}
+          aws-region: eu-west-2
+      - name: Install terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.3
+          terraform_wrapper: false
+      - name: Get Terraform outputs
+        id: tf-outputs
+        working-directory: agents
+        run: |
+          set -e
+          terraform init -upgrade
+          echo "agent_id=$(terraform output -raw agent_id)" >> "$GITHUB_OUTPUT"
+          echo "agent_alias_id=$(terraform output -raw agent_alias_id)" >> "$GITHUB_OUTPUT"
+      - name: Read instructions file
+        id: instructions
+        run: |
+          set -e
+          INSTRUCTIONS=$(cat "${{ inputs.instructions_file }}")
+          {
+            echo "content<<INSTRUCTIONS_EOF"
+            echo "$INSTRUCTIONS"
+            echo "INSTRUCTIONS_EOF"
+          } >> "$GITHUB_OUTPUT"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install boto3
+        run: pip install boto3
+      - name: Invoke Bedrock agent
+        id: invoke
+        env:
+          AGENT_ID: ${{ steps.tf-outputs.outputs.agent_id }}
+          AGENT_ALIAS_ID: ${{ steps.tf-outputs.outputs.agent_alias_id }}
+          INSTRUCTIONS: ${{ steps.instructions.outputs.content }}
+          JQL_OVERRIDE: ${{ inputs.jql_query }}
+        run: |
+          set -e
+          PROMPT="$INSTRUCTIONS"
+          if [ -n "$JQL_OVERRIDE" ]; then
+            PROMPT="$PROMPT
+
+          ---
+          IMPORTANT: Use the following JQL query instead of any query in the instructions above:
+          $JQL_OVERRIDE"
+          fi
+
+          OUTPUT=$(python scripts/invoke_agent.py \
+            --agent-id "$AGENT_ID" \
+            --agent-alias-id "$AGENT_ALIAS_ID" \
+            --prompt "$PROMPT")
+
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H%M%SZ")
+          S3_KEY="${{ inputs.output_s3_prefix }}/${TIMESTAMP}.md"
+          echo "$OUTPUT" | aws s3 cp - "s3://${{ steps.tf-outputs.outputs.output_bucket }}/${S3_KEY}"
+
+          S3_URI="s3://${{ steps.tf-outputs.outputs.output_bucket }}/${S3_KEY}"
+          echo "s3_uri=$S3_URI" >> "$GITHUB_OUTPUT"
+          echo "### Agent Output" >> "$GITHUB_STEP_SUMMARY"
+          echo "Output written to: \`${S3_URI}\`" >> "$GITHUB_STEP_SUMMARY"

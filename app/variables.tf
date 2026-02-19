@@ -359,6 +359,18 @@ variable "maximum_sidekiq_replicas" {
   description = "Amount of replicas for the sidekiq service"
 }
 
+locals {
+  sidekiq_resources = contains(["performance", "production"], var.environment) ? {
+    cpu              = 2048
+    memory           = 16384
+    cpu_target_value = 30
+    } : {
+    cpu              = 1024
+    memory           = 6144
+    cpu_target_value = 60
+  }
+}
+
 variable "minimum_reporting_replicas" {
   type        = number
   default     = 0

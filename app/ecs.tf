@@ -135,8 +135,8 @@ module "sidekiq_service" {
   task_config = {
     environment          = local.sidekiq_envs
     secrets              = local.task_secrets["CORE"]
-    cpu                  = 1024
-    memory               = 6144
+    cpu                  = local.sidekiq_resources.cpu
+    memory               = local.sidekiq_resources.memory
     execution_role_arn   = aws_iam_role.ecs_task_execution_role["CORE"].arn
     task_role_arn        = data.aws_iam_role.ecs_task_role.arn
     log_group_name       = aws_cloudwatch_log_group.ecs_log_group.name
@@ -163,7 +163,7 @@ module "sidekiq_service" {
   autoscaling_policies = tomap({
     cpu = {
       predefined_metric_type = "ECSServiceAverageCPUUtilization"
-      target_value           = 60
+      target_value           = local.sidekiq_resources.cpu_target_value
       scale_in_cooldown      = 600
       scale_out_cooldown     = 300
     }

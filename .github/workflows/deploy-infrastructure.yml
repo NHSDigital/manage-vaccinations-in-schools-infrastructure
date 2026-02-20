@@ -25,6 +25,7 @@ on:
           - sandbox-beta
           - performance
           - pentest
+          - production
       git_ref_to_deploy:
         description: The git commit SHA to deploy.
         required: false

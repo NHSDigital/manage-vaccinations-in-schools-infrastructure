@@ -70,7 +70,6 @@ jobs:
           -var-file="env/$environment.tfvars" \
           -out ${{ runner.temp }}/tfplan | tee ${{ runner.temp }}/tf_stdout
           TF_EXIT_CODE="${PIPESTATUS[0]}"
-          cat ${{ runner.temp }}/tf_stdout
           if [ "$TF_EXIT_CODE" -eq 1 ]; then
               exit "$TF_EXIT_CODE"
           fi
@@ -97,6 +96,9 @@ jobs:
     environment: ${{ inputs.environment }}
     permissions:
       id-token: write
+    defaults:
+      run:
+        working-directory: app
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -116,8 +118,12 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.13.3
-      - name: Apply the changes
+      - name: Dummy plan to generate zip files
         run: |
           set -e
           terraform init -backend-config="env/$environment-backend.hcl" -upgrade
+          terraform plan -var-file="env/$environment.tfvars" > /dev/null
+      - name: Apply the changes
+        run: |
+          set -e
           terraform apply ${{ runner.temp }}/tfplan

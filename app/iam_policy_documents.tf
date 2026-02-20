@@ -36,6 +36,20 @@ data "aws_iam_policy_document" "ecs_secrets_access" {
   }
 }
 
+data "aws_iam_policy_document" "secret_rotation_ecs_redeploy" {
+  statement {
+    sid = "AllowECSRedeployOnSecretRotation"
+    actions = [
+      "ecs:DescribeServices",
+      "ecs:UpdateService",
+    ]
+    resources = [
+      "arn:aws:ecs:${var.region}:${var.account_id}:service/${aws_ecs_cluster.cluster.name}/*",
+    ]
+    effect = "Allow"
+  }
+}
+
 data "aws_iam_policy_document" "vpc_flowlogs" {
   statement {
     actions = [

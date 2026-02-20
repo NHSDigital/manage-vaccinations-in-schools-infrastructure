@@ -5,7 +5,7 @@ resource "aws_iam_role" "mavis_deploy" {
   assume_role_policy = templatefile("resources/iam_role_github_trust_policy_${var.environment}.json.tftpl", {
     account_id = var.account_id
     repository_list = [
-      "repo:nhsuk/manage-vaccinations-in-schools",
+      "repo:NHSDigital/manage-vaccinations-in-schools",
       "repo:NHSDigital/manage-vaccinations-in-schools-infrastructure"
     ]
   })
@@ -33,7 +33,7 @@ resource "aws_iam_role" "data_replication_deploy" {
   assume_role_policy = templatefile("resources/iam_role_github_trust_policy_${var.environment}.json.tftpl", {
     account_id = var.account_id
     repository_list = [
-      "repo:nhsuk/manage-vaccinations-in-schools",
+      "repo:NHSDigital/manage-vaccinations-in-schools",
       "repo:NHSDigital/manage-vaccinations-in-schools-infrastructure"
     ]
   })
@@ -62,7 +62,7 @@ resource "aws_iam_role" "data_replication_snapshot" {
   assume_role_policy = templatefile("resources/iam_role_github_trust_policy_${var.environment}.json.tftpl", {
     account_id = var.account_id
     repository_list = [
-      "repo:nhsuk/manage-vaccinations-in-schools",
+      "repo:NHSDigital/manage-vaccinations-in-schools",
       "repo:NHSDigital/manage-vaccinations-in-schools-infrastructure"
     ]
   })
@@ -90,7 +90,7 @@ resource "aws_iam_role" "monitoring_deploy" {
   assume_role_policy = templatefile("resources/iam_role_github_trust_policy_${var.environment}.json.tftpl", {
     account_id = var.account_id
     repository_list = [
-      "repo:nhsuk/manage-vaccinations-in-schools",
+      "repo:NHSDigital/manage-vaccinations-in-schools",
       "repo:NHSDigital/manage-vaccinations-in-schools-infrastructure"
     ]
   })
@@ -119,7 +119,7 @@ resource "aws_iam_role" "deploy_ecs_service" {
   assume_role_policy = templatefile("resources/iam_role_github_trust_policy_${var.environment}.json.tftpl", {
     account_id = var.account_id,
     repository_list = [
-      "repo:nhsuk/manage-vaccinations-in-schools",
+      "repo:NHSDigital/manage-vaccinations-in-schools",
       "repo:NHSDigital/manage-vaccinations-in-schools-reporting",
       "repo:NHSDigital/manage-vaccinations-in-schools-infrastructure"
     ]
@@ -150,7 +150,7 @@ resource "aws_iam_role" "github_assurance" {
   assume_role_policy = templatefile("resources/iam_role_github_trust_policy_${var.environment}.json.tftpl", {
     account_id = var.account_id,
     repository_list = [
-      "repo:nhsuk/manage-vaccinations-in-schools",
+      "repo:NHSDigital/manage-vaccinations-in-schools",
       "repo:NHSDigital/manage-vaccinations-in-schools-testing",
       "repo:NHSDigital/manage-vaccinations-in-schools-infrastructure"
     ]

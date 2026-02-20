@@ -160,6 +160,7 @@ jobs:
     needs: plan
     if: ${{ inputs.environment == 'production' && github.event_name == 'workflow_dispatch' }}
     steps:
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/notify-approval-required
         with:
           webhook: ${{ secrets.SLACK_MAVIS_TECH_WEBHOOK_URL }}

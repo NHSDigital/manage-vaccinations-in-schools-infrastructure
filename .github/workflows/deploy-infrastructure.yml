@@ -86,9 +86,10 @@ jobs:
     needs: plan
     if: ${{ inputs.environment == 'production' }}
     steps:
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/notify-approval-required
         with:
-          webhook: ${{ secrets.SLACK_MAVIS_RELEASE_WEBHOOK_URL }}
+          webhook: ${{ secrets.SLACK_MAVIS_RELEASES_WEBHOOK_URL }}
   apply:
     name: Terraform apply
     runs-on: ubuntu-latest

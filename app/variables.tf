@@ -390,6 +390,19 @@ variable "enable_ops_service" {
   nullable    = false
 }
 
+variable "fast_rolling_deployments" {
+  type        = bool
+  default     = false
+  description = "Enable rolling deployments and reduces deregistration delay in target groups for faster deployment to non-production environments."
+  nullable    = false
+
+  validation {
+    condition = !(var.fast_rolling_deployments && contains(
+      ["production", "preview"], var.environment
+    ))
+    error_message = "fast_rolling_deployments must be false for production and preview environments."
+  }
+}
 
 variable "max_aurora_capacity_units" {
   type        = number
@@ -514,6 +527,7 @@ variable "active_target_group" {
 }
 locals {
   non_active_target_group         = var.active_target_group == "blue" ? aws_lb_target_group.green.arn : aws_lb_target_group.blue.arn
+  deregistration_delay            = var.fast_rolling_deployments ? 30 : 300
   db_access_sg_ids                = [module.web_service.security_group_id, module.sidekiq_service.security_group_id, module.ops_service.security_group_id]
   valkey_cache_availability_zones = var.valkey_failover_enabled ? [aws_subnet.private_subnet_a.availability_zone, aws_subnet.private_subnet_b.availability_zone] : [aws_subnet.private_subnet_a.availability_zone]
 }

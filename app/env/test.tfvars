@@ -20,3 +20,5 @@ valkey_failover_enabled   = false
 
 minimum_reporting_replicas = 2
 maximum_reporting_replicas = 4
+
+fast_non_prod_deployment = true

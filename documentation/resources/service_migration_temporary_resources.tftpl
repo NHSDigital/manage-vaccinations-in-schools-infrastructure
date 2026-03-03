@@ -1,0 +1,170 @@
+# Service Migration Temporary Resources Template
+# This template demonstrates how to configure temporary resources during service migrations
+# Replace placeholder values (YOUR_*) with actual values from your environment
+
+############# Migration Configuration Variables #############
+
+variable "migration_stage" {
+  type        = string
+  description = "Current migration phase. Valid values: 'pre-migration', 'switch-traffic-to-temp', 'replace-service', 'switch-traffic-back-to-original'"
+  validation {
+    condition     = contains(["pre-migration", "switch-traffic-to-temp", "replace-service", "switch-traffic-back-to-original"], var.migration_stage)
+    error_message = "Invalid migration stage value"
+  }
+}
+
+variable "temporary_migration_resources_active" {
+  type        = bool
+  default     = false
+  description = "Enable to create temporary migration resources"
+}
+
+variable "temporary_service_image" {
+  type        = string
+  description = "Docker image for temporary service, could be same as original service, unique to migration stage, or the final image for the new service depending on your migration strategy"
+}
+
+############# Stage Configuration #############
+
+locals {
+  # Configure protocol versions and listener priorities per migration stage
+  # NOTE: Priorities should be ±1 from current production priorities. In this 
+  #       setup we assume current production priority is 49500 and test priority is 20.
+  #       Adjust accordingly based on your actual listener rule priorities.
+  stage_config = {
+    "pre-migration" = {
+      blue_temp_priority  = 49501 # Example: current priority +1 to keep current traffic flow
+      greeb_temp_priority = 21    # Example: current test priority +1 to keep current traffic flow
+      # Any other stage-specific configuration (e.g. target group protocol versions, service healthchecks, etc) can be added here as well
+    }
+    "switch-traffic-to-temp" = {
+      blue_temp_priority  = 49499 # Example: current priority -1 to move traffic to temporary service
+      greeb_temp_priority = 19    # Example: current test priority -1 to move traffic to temporary service
+      # Any other stage-specific configuration (e.g. target group protocol versions, service healthchecks, etc) can be added here as well
+    }
+    "replace-service" = {
+      blue_temp_priority  = 49499 # No change to priority to preserve traffic flow
+      greeb_temp_priority = 19    # No change to priority to preserve traffic flow
+      # Any other stage-specific configuration (e.g. target group protocol versions, service healthchecks, etc) can be added here as well
+    }
+    "switch-traffic-back-to-original" = {
+      blue_temp_priority  = 49501 # Example: current priority +1 to move traffic back to recreated service
+      greeb_temp_priority = 21    # Example: current test priority +1 to move traffic back to recreated service
+      # Any other stage-specific configuration (e.g. target group protocol versions, service healthchecks, etc) can be added here as well
+    }
+  }
+}
+
+############# Temporary Service Module #############
+
+module "temporary_service" {
+  count  = var.temporary_migration_resources_active ? 1 : 0
+  source = "YOUR_MODULE_SOURCE"
+
+  # Service configuration
+  container_image  = var.temporary_service_image
+  server_type_name = "#{original_service_name}-temp"
+
+  # Load balancer integration
+  loadbalancer = {
+    target_group_blue   = aws_lb_target_group.temp_service_blue[0].arn
+    target_group_green  = aws_lb_target_group.temp_service_green[0].arn
+    container_port      = "#{original_service_port}"
+    blue_listener_rule  = aws_lb_listener_rule.temp_service_blue[0].arn
+    green_listener_rule = aws_lb_listener_rule.temp_service_green[0].arn
+    deploy_role_arn     = "#{original_service_deploy_role_arn}"
+  }
+
+  # Service Connect configuration --> if existent in original service or needed for replacement service
+  # Any connected services should point to this temporary service discovery name during migration. 
+  # Potentially this requires all connected services to also have temporary resources created and updated during migration.
+  service_connect_config = {
+    namespace = "#{original_service_port_namespace_arn}"
+    services = [{
+      port_name      = "#{original_service_port_name}",
+      discovery_name = "#{original_service_discovery_name}_temp",
+      port           = "#{original_service_port}"
+    }]
+  }
+
+  # Resource dependencies
+  depends_on = [
+    aws_lb_target_group.temp_service_blue,
+    aws_lb_target_group.temp_service_green,
+    aws_lb_listener_rule.temp_service_blue,
+    aws_lb_listener_rule.temp_service_green
+  ]
+
+  # All other parameters (CPU, memory, autoscaling, etc.) are most likely unchanged from the original service, but can be overridden here if needed.
+}
+
+############# Temporary Service Groups & Rules Resources #############
+# Any other security group rules needed for the temporary service (e.g. communication with other services, database, egress rules, etc.) should be added here as well.
+
+resource "aws_security_group_rule" "temporary_service_alb_ingress" {
+  count                    = var.temporary_migration_resources_active ? 1 : 0
+  type                     = "ingress"
+  from_port                = "#{original_service_port}"
+  to_port                  = "#{original_service_port}"
+  protocol                 = "tcp"
+  security_group_id        = module.temporary_service[0].security_group_id
+  source_security_group_id = aws_security_group.lb_service_sg.id
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+############# Temporary ALB Resources #############
+
+# Blue target group for temporary service
+resource "aws_lb_target_group" "temp_service_blue" {
+  count = var.temporary_migration_resources_active ? 1 : 0
+  name  = "temp-service-blue-${var.environment}"
+  # Potentially identical configuration to the original target group, but with a different name to avoid conflicts
+}
+
+# Green target group for temporary service
+resource "aws_lb_target_group" "temp_service_green" {
+  count = var.temporary_migration_resources_active ? 1 : 0
+  name  = "temp-service-green-${var.environment}"
+  # Potentially identical configuration to the original target group, but with a different name to avoid conflicts during migration.
+}
+
+# Blue listener rule for temporary service
+resource "aws_lb_listener_rule" "temp_service_blue" {
+  count = var.temporary_migration_resources_active ? 1 : 0
+
+  listener_arn = "#{original_production_listener_arn}"
+  priority     = local.stage_config[var.migration_stage].blue_temp_priority
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.temp_service_blue[0].arn
+  }
+
+  condition {
+    host_header {
+      values = ["YOUR_HOST_HEADERS"]
+    }
+  }
+}
+
+# Green listener rule for temporary service
+resource "aws_lb_listener_rule" "temp_service_green" {
+  count = var.temporary_migration_resources_active ? 1 : 0
+
+  listener_arn = "#{original_test_listener_arn}"
+  priority     = local.stage_config[var.migration_stage].green_temp_priority
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.temp_service_green[0].arn
+  }
+
+  condition {
+    http_header {
+      http_header_name = "X-Environment"
+      values           = ["test"]
+    }
+  }
+}

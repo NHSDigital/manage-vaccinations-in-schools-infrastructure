@@ -24,3 +24,5 @@ maximum_reporting_replicas = 2
 valkey_node_type          = "cache.t4g.micro"
 valkey_log_retention_days = 3
 valkey_failover_enabled   = false
+
+fast_non_prod_deployment = true

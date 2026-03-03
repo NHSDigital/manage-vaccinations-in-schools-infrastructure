@@ -22,3 +22,5 @@ enable_backup_to_vault        = true
 
 minimum_reporting_replicas = 2
 maximum_reporting_replicas = 4
+
+fast_non_prod_deployment = true

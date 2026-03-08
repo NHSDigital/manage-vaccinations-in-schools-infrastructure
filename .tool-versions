@@ -1,5 +1,6 @@
-awscli      2.27.46
-terraform   1.13.3
-tflint      0.55.1
-pre-commit  latest
-python      3.14
+actionlint 1.7.11
+awscli     2.27.46
+pre-commit latest
+python     3.14
+terraform  1.13.3
+tflint     0.55.1

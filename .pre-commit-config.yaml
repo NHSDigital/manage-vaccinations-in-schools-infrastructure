@@ -27,3 +27,7 @@ repos:
       - id: mdformat
         types: [markdown]
         additional_dependencies: ['mdformat-gfm']
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.29.0
+    hooks:
+      - id: yamllint

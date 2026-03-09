@@ -13,7 +13,7 @@ jobs:
       - name: Install tooling
         uses: jdx/mise-action@v3
         with:
-          install_args: python tflint terraform
+          install_args: python tflint terraform yamllint
       - name: Install pre-commit
         run: pip install pre-commit==3.7.0
       - name: Cache pre-commit environments

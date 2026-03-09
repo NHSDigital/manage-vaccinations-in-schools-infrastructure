@@ -19,10 +19,10 @@ concurrency:
   group: deploy-monitoring-${{ inputs.environment }}
 env:
   aws_role: >-
-    ${{ inputs.environment == 'production' &&
-    'arn:aws:iam::820242920762:role/GithubDeployMonitoring' ||
-    'arn:aws:iam::393416225559:role/GithubDeployMonitoring' }}
-  aws_account_id: ${{ inputs.environment == 'production' && '820242920762' || '393416225559' }}
+    ${{ inputs.environment == 'production' && 'arn:aws:iam::820242920762:role/GithubDeployMonitoring'
+    || 'arn:aws:iam::393416225559:role/GithubDeployMonitoring' }}
+  aws_account_id: ${{ inputs.environment == 'production' && '820242920762' || '393416225559'
+    }}
   environment: ${{ inputs.environment }}
   git_ref_to_deploy: ${{ inputs.git_ref_to_deploy || github.ref_name }}
 jobs:
@@ -127,8 +127,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [plan-aws, apply-aws]
     if: >-
-      always() && needs.plan-aws.result == 'success' &&
-      (needs.apply-aws.result == 'success' || needs.apply-aws.result == 'skipped')
+      always() && needs.plan-aws.result == 'success' && (needs.apply-aws.result ==
+      'success' || needs.apply-aws.result == 'skipped')
     permissions:
       id-token: write
     defaults:

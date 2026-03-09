@@ -14,9 +14,8 @@ permissions: {}
 env:
   environment: ${{ inputs.environment }}
   aws_role: >-
-    ${{ inputs.environment == 'production' &&
-    'arn:aws:iam::820242920762:role/GithubDeployMavisAndInfrastructure' ||
-    'arn:aws:iam::393416225559:role/GithubDeployMavisAndInfrastructure' }}
+    ${{ inputs.environment == 'production' && 'arn:aws:iam::820242920762:role/GithubDeployMavisAndInfrastructure'
+    || 'arn:aws:iam::393416225559:role/GithubDeployMavisAndInfrastructure' }}
 concurrency:
   group: backup-infrastructure-${{ inputs.environment }}
 defaults:
@@ -45,8 +44,8 @@ jobs:
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.BACKUP_MODULES_ACCESS_TOKEN }}
           SLACK_WEBHOOK_URL: >-
-            ${{ inputs.environment == 'production' && secrets.SLACK_AWS_BACKUP_PRODUCTION_WEBHOOK ||
-            secrets.SLACK_AWS_BACKUP_TEST_WEBHOOK }}
+            ${{ inputs.environment == 'production' && secrets.SLACK_AWS_BACKUP_PRODUCTION_WEBHOOK
+            || secrets.SLACK_AWS_BACKUP_TEST_WEBHOOK }}
         run: |
           set -e
           git config --global \

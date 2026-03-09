@@ -1,11 +1,11 @@
----
 extends: default
-
 ignore-from-file: .gitignore
-
 rules:
   document-start: disable
   line-length:
-    max: 100
+    # Ideally this would be shorter, but due to the way `yamlfmt` formats
+    # files, we sometimes end up with excessively long lines:
+    # https://github.com/google/yamlfmt/issues/191
+    max: 120
   truthy:
     ignore: .github/workflows/*

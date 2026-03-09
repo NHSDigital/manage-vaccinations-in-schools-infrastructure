@@ -50,8 +50,14 @@ env:
   environment: ${{ inputs.environment }}
   db_snapshot_arn: ${{ inputs.db_snapshot_arn }}
   egress_cidr: ${{ inputs.egress_cidr }}
-  aws_role: ${{ inputs.environment == 'production' && 'arn:aws:iam::820242920762:role/GithubDeployDataReplicationInfrastructure' || 'arn:aws:iam::393416225559:role/GithubDeployDataReplicationInfrastructure' }}
-  db_snapshot_role: ${{ inputs.environment == 'production' && 'arn:aws:iam::820242920762:role/DatabaseSnapshotRole' || 'arn:aws:iam::393416225559:role/DatabaseSnapshotRole' }}
+  aws_role: >-
+    ${{ inputs.environment == 'production' &&
+    'arn:aws:iam::820242920762:role/GithubDeployDataReplicationInfrastructure' ||
+    'arn:aws:iam::393416225559:role/GithubDeployDataReplicationInfrastructure' }}
+  db_snapshot_role: >-
+    ${{ inputs.environment == 'production' &&
+    'arn:aws:iam::820242920762:role/DatabaseSnapshotRole' ||
+    'arn:aws:iam::393416225559:role/DatabaseSnapshotRole' }}
 defaults:
   run:
     working-directory: data_replication
@@ -77,9 +83,12 @@ jobs:
         run: |
           set -e
           snapshot_identifier="snapshot-for-data-replication-$(date +"%Y-%m-%d-%H-%M-%S")"
-          aws rds create-db-cluster-snapshot --db-cluster-identifier "mavis-$environment" --db-cluster-snapshot-identifier "$snapshot_identifier"
+          aws rds create-db-cluster-snapshot \
+            --db-cluster-identifier "mavis-$environment" \
+            --db-cluster-snapshot-identifier "$snapshot_identifier"
           echo "Waiting for snapshot to be available. This can take a while."
-          aws rds wait db-cluster-snapshot-available --db-cluster-snapshot-identifier "$snapshot_identifier"
+          aws rds wait db-cluster-snapshot-available \
+            --db-cluster-snapshot-identifier "$snapshot_identifier"
           echo "New snapshot is now available"
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v5
@@ -88,6 +97,7 @@ jobs:
           aws-region: eu-west-2
       - name: Get latest snapshot
         id: get-latest-snapshot
+        # yamllint disable rule:line-length
         run: |
           set -e
           if [ -z "$db_snapshot_arn" ]; then
@@ -106,6 +116,7 @@ jobs:
           fi
           echo "Using snapshot ARN: $SNAPSHOT_ARN"
           echo "SNAPSHOT_ARN=$SNAPSHOT_ARN" >> "$GITHUB_OUTPUT"
+      # yamllint enable rule:line-length
       - name: Install terraform
         uses: hashicorp/setup-terraform@v3
         with:

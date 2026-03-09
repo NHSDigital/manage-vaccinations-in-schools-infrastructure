@@ -1,11 +1,11 @@
-name: 'Notify approval required'
-description: 'Send Slack notification when approval is required'
+name: Notify approval required
+description: Send Slack notification when approval is required
 inputs:
   webhook:
-    description: 'Slack incoming webhook URL'
+    description: Slack incoming webhook URL
     required: true
 runs:
-  using: "composite"
+  using: composite
   steps:
     - name: Notify pending approval
       env:
@@ -14,6 +14,7 @@ runs:
       with:
         webhook: ${{ inputs.webhook }}
         webhook-type: incoming-webhook
+        # yamllint disable rule:line-length
         payload: |-
           text: ":hourglass: Approval required :hourglass:"
           blocks:
@@ -27,3 +28,4 @@ runs:
                   text: "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>"
                 - type: "mrkdwn"
                   text: "*Triggered by:*\n${{ github.actor }}"
+        # yamllint enable rule:line-length

@@ -43,7 +43,8 @@ jobs:
           terraform init -backend-config="env/$environment-backend.hcl" -upgrade
           if terraform state list | grep -q 'aws_rds_cluster.core'; then
             echo "DB cluster exists: removing delete protection"
-            aws rds modify-db-cluster --db-cluster-identifier "mavis-$environment-core" --no-deletion-protection
+            aws rds modify-db-cluster --db-cluster-identifier \
+              "mavis-$environment-core" --no-deletion-protection
             echo "DB cluster delete protection removed: proceeding to delete stage"
           else
             echo "DB cluster not in state: proceeding to delete stage"

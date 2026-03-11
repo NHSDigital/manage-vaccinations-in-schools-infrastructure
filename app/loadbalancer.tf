@@ -72,11 +72,12 @@ resource "aws_lb" "app_lb" {
 }
 
 resource "aws_lb_target_group" "blue" {
-  name        = "mavis-blue-${var.environment}"
-  port        = local.container_ports.web
-  protocol    = "HTTP"
-  vpc_id      = aws_vpc.application_vpc.id
-  target_type = "ip"
+  name                 = "mavis-blue-${var.environment}"
+  port                 = local.container_ports.web
+  protocol             = "HTTP"
+  vpc_id               = aws_vpc.application_vpc.id
+  target_type          = "ip"
+  deregistration_delay = local.deregistration_delay
   health_check {
     path                = "/up"
     protocol            = "HTTP"
@@ -90,11 +91,12 @@ resource "aws_lb_target_group" "blue" {
 }
 
 resource "aws_lb_target_group" "green" {
-  name        = "mavis-green-${var.environment}"
-  port        = local.container_ports.web
-  protocol    = "HTTP"
-  vpc_id      = aws_vpc.application_vpc.id
-  target_type = "ip"
+  name                 = "mavis-green-${var.environment}"
+  port                 = local.container_ports.web
+  protocol             = "HTTP"
+  vpc_id               = aws_vpc.application_vpc.id
+  target_type          = "ip"
+  deregistration_delay = local.deregistration_delay
   health_check {
     path                = "/up"
     protocol            = "HTTP"
@@ -108,11 +110,12 @@ resource "aws_lb_target_group" "green" {
 }
 
 resource "aws_lb_target_group" "reporting_blue" {
-  name        = "mavis-rep-blue-${var.environment}"
-  port        = local.container_ports.reporting
-  protocol    = "HTTP"
-  vpc_id      = aws_vpc.application_vpc.id
-  target_type = "ip"
+  name                 = "mavis-rep-blue-${var.environment}"
+  port                 = local.container_ports.reporting
+  protocol             = "HTTP"
+  vpc_id               = aws_vpc.application_vpc.id
+  target_type          = "ip"
+  deregistration_delay = local.deregistration_delay
   health_check {
     path                = "/reports/healthcheck"
     protocol            = "HTTP"
@@ -126,11 +129,12 @@ resource "aws_lb_target_group" "reporting_blue" {
 }
 
 resource "aws_lb_target_group" "reporting_green" {
-  name        = "mavis-rep-green-${var.environment}"
-  port        = local.container_ports.reporting
-  protocol    = "HTTP"
-  vpc_id      = aws_vpc.application_vpc.id
-  target_type = "ip"
+  name                 = "mavis-rep-green-${var.environment}"
+  port                 = local.container_ports.reporting
+  protocol             = "HTTP"
+  vpc_id               = aws_vpc.application_vpc.id
+  target_type          = "ip"
+  deregistration_delay = local.deregistration_delay
   health_check {
     path                = "/reports/healthcheck"
     protocol            = "HTTP"

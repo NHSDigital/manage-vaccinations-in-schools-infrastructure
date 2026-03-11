@@ -51,7 +51,7 @@ resource "aws_ecs_service" "this" {
   dynamic "deployment_configuration" {
     for_each = var.loadbalancer != null ? [1] : []
     content {
-      strategy             = "BLUE_GREEN"
+      strategy             = var.fast_rolling_deployments ? "ROLLING" : "BLUE_GREEN"
       bake_time_in_minutes = 1
     }
   }
@@ -61,11 +61,14 @@ resource "aws_ecs_service" "this" {
       target_group_arn = var.loadbalancer.target_group_blue
       container_name   = var.container_name
       container_port   = var.loadbalancer.container_port
-      advanced_configuration {
-        alternate_target_group_arn = var.loadbalancer.target_group_green
-        production_listener_rule   = var.loadbalancer.production_listener_rule_arn
-        role_arn                   = var.loadbalancer.deploy_role_arn
-        test_listener_rule         = var.loadbalancer.test_listner_rule_arn
+      dynamic "advanced_configuration" {
+        for_each = var.fast_rolling_deployments ? [] : [1]
+        content {
+          alternate_target_group_arn = var.loadbalancer.target_group_green
+          production_listener_rule   = var.loadbalancer.production_listener_rule_arn
+          role_arn                   = var.loadbalancer.deploy_role_arn
+          test_listener_rule         = var.loadbalancer.test_listner_rule_arn
+        }
       }
     }
   }

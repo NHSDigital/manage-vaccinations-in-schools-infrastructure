@@ -123,6 +123,8 @@ module "web_service" {
     ]
   }
 
+  fast_rolling_deployments = var.fast_rolling_deployments
+
   depends_on = [
     aws_iam_role.ecs_deploy,
     aws_rds_cluster_instance.core,
@@ -223,6 +225,8 @@ module "reporting_service" {
     namespace = aws_service_discovery_private_dns_namespace.internal.arn
     services  = []
   }
+
+  fast_rolling_deployments = var.fast_rolling_deployments
 
   depends_on = [
     aws_iam_role.ecs_deploy

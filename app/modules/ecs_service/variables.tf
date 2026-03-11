@@ -163,6 +163,13 @@ variable "export_prometheus_metrics" {
   nullable    = false
 }
 
+variable "fast_rolling_deployments" {
+  type        = bool
+  default     = false
+  description = "Enable faster deployment settings for non-production environments. When true, uses rolling deployment instead of blue/green."
+  nullable    = false
+}
+
 locals {
   autoscaling_enabled = var.maximum_replica_count > var.minimum_replica_count
   server_type_name    = var.server_type_name != null ? var.server_type_name : var.server_type

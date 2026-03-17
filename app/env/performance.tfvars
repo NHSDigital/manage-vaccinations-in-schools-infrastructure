@@ -21,6 +21,8 @@ enable_enhanced_db_monitoring = true
 enable_backup_to_vault        = true
 
 minimum_reporting_replicas = 2
+minimum_web_replicas       = 4
 maximum_reporting_replicas = 4
+maximum_web_replicas       = 10
 
 fast_rolling_deployments = true

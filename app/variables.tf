@@ -271,7 +271,7 @@ locals {
     local.task_envs["CORE"],
     [
       {
-        name  = "EXPORT_PUMA_METRICS"
+        name  = "EXPORT_WEB_METRICS"
         value = tostring(local.export_prometheus_metrics)
       }
     ]

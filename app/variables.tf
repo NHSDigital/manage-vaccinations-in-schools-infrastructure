@@ -13,7 +13,7 @@ variable "environment" {
     condition = contains([
       "sandbox-alpha", "sandbox-beta", "qa", "performance", "test", "training", "preview", "pentest", "production"
     ], var.environment)
-    error_message = "Valid values for environment: sandbox-alpha, sandbox-beta, qa, performance, test, training, preview, production."
+    error_message = "Valid values for environment: sandbox-alpha, sandbox-beta, qa, performance, test, training, preview, pentest, production."
   }
 }
 
@@ -256,7 +256,7 @@ locals {
       },
       {
         name  = "HTTP_MODE",
-        value = local.migration_stage_configs[var.migration_stage].reporting_protocol # HTTPS
+        value = "HTTPS"
       }
     ]
   }
@@ -283,8 +283,12 @@ locals {
         value = tostring(local.export_prometheus_metrics)
       },
       {
-        name  = "H2C_ENABLED"
-        value = "true"
+        name  = "HTTP_VERSION",
+        value = "http2"
+      },
+      {
+        name  = "HTTP_PROTOCOL",
+        value = "https"
       }
     ],
     var.enable_mock_careplus_service ? [

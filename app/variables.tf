@@ -118,6 +118,20 @@ variable "enable_enhanced_db_monitoring" {
   nullable    = false
 }
 
+variable "reporting_image" {
+  type        = string
+  description = "The container image for the reporting service"
+  default     = "CHANGE_ME"
+  nullable    = false
+}
+
+variable "core_image" {
+  type        = string
+  description = "The container image for the web, sidekiq, and ops services"
+  default     = "CHANGE_ME"
+  nullable    = false
+}
+
 locals {
   server_types  = toset(["CORE", "REPORTING"])
   is_production = var.environment == "production"

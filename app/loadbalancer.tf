@@ -74,14 +74,14 @@ resource "aws_lb" "app_lb" {
 resource "aws_lb_target_group" "blue" {
   name                 = "mavis-blue-${var.environment}"
   port                 = local.container_ports.web
-  protocol             = local.migration_stage_configs[var.migration_stage].HTTP_protocol        #HTTPS
-  protocol_version     = local.migration_stage_configs[var.migration_stage].web_protocol_version #HTTP2
+  protocol             = "HTTPS"
+  protocol_version     = "HTTP2"
   vpc_id               = aws_vpc.application_vpc.id
   target_type          = "ip"
   deregistration_delay = local.deregistration_delay
   health_check {
     path                = "/up"
-    protocol            = local.migration_stage_configs[var.migration_stage].HTTP_protocol #HTTPS
+    protocol            = "HTTPS"
     port                = "traffic-port"
     matcher             = "200"
     interval            = 5
@@ -94,14 +94,14 @@ resource "aws_lb_target_group" "blue" {
 resource "aws_lb_target_group" "green" {
   name                 = "mavis-green-${var.environment}"
   port                 = local.container_ports.web
-  protocol             = local.migration_stage_configs[var.migration_stage].HTTP_protocol        #HTTPS
-  protocol_version     = local.migration_stage_configs[var.migration_stage].web_protocol_version #HTTP2
+  protocol             = "HTTPS"
+  protocol_version     = "HTTP2"
   vpc_id               = aws_vpc.application_vpc.id
   target_type          = "ip"
   deregistration_delay = local.deregistration_delay
   health_check {
     path                = "/up"
-    protocol            = local.migration_stage_configs[var.migration_stage].HTTP_protocol #HTTPS
+    protocol            = "HTTPS"
     port                = "traffic-port"
     matcher             = "200"
     interval            = 5
@@ -114,14 +114,14 @@ resource "aws_lb_target_group" "green" {
 resource "aws_lb_target_group" "reporting_blue" {
   name                 = "mavis-rep-blue-${var.environment}"
   port                 = local.container_ports.reporting
-  protocol             = local.migration_stage_configs[var.migration_stage].HTTP_protocol              #HTTPS
-  protocol_version     = local.migration_stage_configs[var.migration_stage].reporting_protocol_version #HTTP2
+  protocol             = "HTTPS"
+  protocol_version     = "HTTP2"
   vpc_id               = aws_vpc.application_vpc.id
   target_type          = "ip"
   deregistration_delay = local.deregistration_delay
   health_check {
     path                = "/reports/healthcheck"
-    protocol            = local.migration_stage_configs[var.migration_stage].HTTP_protocol #HTTPS
+    protocol            = "HTTPS"
     port                = "traffic-port"
     matcher             = "200"
     interval            = 10
@@ -134,14 +134,14 @@ resource "aws_lb_target_group" "reporting_blue" {
 resource "aws_lb_target_group" "reporting_green" {
   name                 = "mavis-rep-green-${var.environment}"
   port                 = local.container_ports.reporting
-  protocol             = local.migration_stage_configs[var.migration_stage].HTTP_protocol              #HTTPS
-  protocol_version     = local.migration_stage_configs[var.migration_stage].reporting_protocol_version #HTTP2
+  protocol             = "HTTPS"
+  protocol_version     = "HTTP2"
   vpc_id               = aws_vpc.application_vpc.id
   target_type          = "ip"
   deregistration_delay = local.deregistration_delay
   health_check {
     path                = "/reports/healthcheck"
-    protocol            = local.migration_stage_configs[var.migration_stage].HTTP_protocol #HTTPS
+    protocol            = "HTTPS"
     port                = "traffic-port"
     matcher             = "200"
     interval            = 10

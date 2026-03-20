@@ -3,6 +3,7 @@
 variable "migration_stage" {
   type        = string
   description = "Configuration for target group setup. Valid values are 'pre-migration', 'switch-traffic-to-temp', 'replace-service', 'switch-traffic-back-to-original'"
+  default     = "pre-migration"
   nullable    = false
   validation {
     condition     = contains(["pre-migration", "switch-traffic-to-temp", "replace-service", "switch-traffic-back-to-original"], var.migration_stage)
@@ -19,56 +20,54 @@ variable "temporary_migration_resources_active" {
 variable "HTTP2_compatible_reporting_image" {
   type        = string
   description = "Container image for the reporting service compatible with HTTP2."
+  default     = "CHANGE_ME"
   nullable    = false
 }
 
 variable "HTTP2_compatible_web_image" {
   type        = string
   description = "Container image for the web service compatible with HTTP2."
+  default     = "CHANGE_ME"
   nullable    = false
 }
 
 locals {
   migration_stage_configs = {
     "pre-migration" = {
-      reporting_protocol             = "HTTP"
-      reporting_protocol_version     = "HTTP1"
-      web_protocol_version           = "HTTP1"
-      web_temp_priority              = 49505
-      web_temp_test_priority         = 21
-      reporting_temp_priority        = 49005
-      reporting_temp_test_priority   = 16
-      reporting_service_health_check = "wget --no-cache --spider -S http://localhost:${local.container_ports.reporting}/reports/healthcheck || exit 1"
+      HTTP_protocol                = "HTTP"
+      reporting_protocol_version   = "HTTP1"
+      web_protocol_version         = "HTTP1"
+      web_temp_priority            = 49505
+      web_temp_test_priority       = 21
+      reporting_temp_priority      = 49005
+      reporting_temp_test_priority = 16
     }
     "switch-traffic-to-temp" = {
-      reporting_protocol             = "HTTP"
-      reporting_protocol_version     = "HTTP1"
-      web_protocol_version           = "HTTP1"
-      web_temp_priority              = 49400
-      web_temp_test_priority         = 19
-      reporting_temp_priority        = 48000
-      reporting_temp_test_priority   = 14
-      reporting_service_health_check = "wget --no-cache --spider -S http://localhost:${local.container_ports.reporting}/reports/healthcheck || exit 1"
+      HTTP_protocol                = "HTTP"
+      reporting_protocol_version   = "HTTP1"
+      web_protocol_version         = "HTTP1"
+      web_temp_priority            = 49400
+      web_temp_test_priority       = 19
+      reporting_temp_priority      = 48000
+      reporting_temp_test_priority = 14
     }
     "replace-service" = {
-      reporting_protocol             = "HTTPS"
-      reporting_protocol_version     = "HTTP2"
-      web_protocol_version           = "HTTP2"
-      web_temp_priority              = 49400
-      web_temp_test_priority         = 19
-      reporting_temp_priority        = 48000
-      reporting_temp_test_priority   = 14
-      reporting_service_health_check = "wget --no-cache --spider -S --no-check-certificate https://localhost:${local.container_ports.reporting}/reports/healthcheck || exit 1"
+      HTTP_protocol                = "HTTPS"
+      reporting_protocol_version   = "HTTP2"
+      web_protocol_version         = "HTTP2"
+      web_temp_priority            = 49400
+      web_temp_test_priority       = 19
+      reporting_temp_priority      = 48000
+      reporting_temp_test_priority = 14
     }
     "switch-traffic-back-to-original" = {
-      reporting_protocol             = "HTTPS"
-      reporting_protocol_version     = "HTTP2"
-      web_protocol_version           = "HTTP2"
-      web_temp_priority              = 49505
-      web_temp_test_priority         = 21
-      reporting_temp_priority        = 49005
-      reporting_temp_test_priority   = 16
-      reporting_service_health_check = "wget --no-cache --spider -S --no-check-certificate https://localhost:${local.container_ports.reporting}/reports/healthcheck || exit 1"
+      HTTP_protocol                = "HTTPS"
+      reporting_protocol_version   = "HTTP2"
+      web_protocol_version         = "HTTP2"
+      web_temp_priority            = 49505
+      web_temp_test_priority       = 21
+      reporting_temp_priority      = 49005
+      reporting_temp_test_priority = 16
     }
   }
 }
@@ -90,7 +89,7 @@ module "web_service_temp" {
     task_role_arn        = data.aws_iam_role.ecs_task_role.arn
     log_group_name       = aws_cloudwatch_log_group.ecs_log_group.name
     region               = var.region
-    health_check_command = ["CMD-SHELL", "./bin/internal_healthcheck http://localhost:${local.container_ports.web}/health/database"]
+    health_check_command = ["CMD-SHELL", "curl -I --http2 -k https://localhost:${local.container_ports.web}/up || exit 1"]
   }
   network_params = {
     subnets = [aws_subnet.private_subnet_a.id, aws_subnet.private_subnet_b.id]
@@ -268,13 +267,13 @@ resource "aws_lb_target_group" "web_blue_temp" {
   count            = var.temporary_migration_resources_active ? 1 : 0
   name             = "blue-${var.environment}"
   port             = local.container_ports.web
-  protocol         = "HTTP"
+  protocol         = "HTTPS"
   protocol_version = "HTTP2"
   vpc_id           = aws_vpc.application_vpc.id
   target_type      = "ip"
   health_check {
     path                = "/up"
-    protocol            = "HTTP"
+    protocol            = "HTTPS"
     port                = "traffic-port"
     matcher             = "200"
     interval            = 5
@@ -288,13 +287,13 @@ resource "aws_lb_target_group" "web_green_temp" {
   count            = var.temporary_migration_resources_active ? 1 : 0
   name             = "green-${var.environment}"
   port             = local.container_ports.web
-  protocol         = "HTTP"
+  protocol         = "HTTPS"
   protocol_version = "HTTP2"
   vpc_id           = aws_vpc.application_vpc.id
   target_type      = "ip"
   health_check {
     path                = "/up"
-    protocol            = "HTTP"
+    protocol            = "HTTPS"
     port                = "traffic-port"
     matcher             = "200"
     interval            = 5

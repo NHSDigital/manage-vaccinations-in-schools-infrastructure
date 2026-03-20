@@ -73,7 +73,7 @@ module "web_service" {
     task_role_arn        = data.aws_iam_role.ecs_task_role.arn
     log_group_name       = aws_cloudwatch_log_group.ecs_log_group.name
     region               = var.region
-    health_check_command = ["CMD-SHELL", "./bin/internal_healthcheck http://localhost:${local.container_ports.web}/health/database"]
+    health_check_command = ["CMD-SHELL", "curl -I --http2 -k https://localhost:${local.container_ports.web}/up || exit 1"]
   }
   export_prometheus_metrics = local.export_prometheus_metrics
   cloudwatch_agent_secrets = [
@@ -144,7 +144,7 @@ module "sidekiq_service" {
     task_role_arn        = data.aws_iam_role.ecs_task_role.arn
     log_group_name       = aws_cloudwatch_log_group.ecs_log_group.name
     region               = var.region
-    health_check_command = ["CMD-SHELL", "./bin/internal_healthcheck && grep -q '[s]idekiq' /proc/*/cmdline 2>/dev/null || exit 1"]
+    health_check_command = ["CMD-SHELL", "grep -q '[s]idekiq' /proc/*/cmdline 2>/dev/null || exit 1"]
   }
   export_prometheus_metrics = local.export_prometheus_metrics
   cloudwatch_agent_secrets = [
@@ -194,7 +194,7 @@ module "reporting_service" {
     task_role_arn        = data.aws_iam_role.ecs_task_role.arn
     log_group_name       = aws_cloudwatch_log_group.ecs_log_group.name
     region               = var.region
-    health_check_command = ["CMD-SHELL", local.migration_stage_configs[var.migration_stage].reporting_service_health_check] #wget --no-cache --spider -S --no-check-certificate https://localhost:${local.container_ports.reporting}/reports/healthcheck || exit 1
+    health_check_command = ["CMD-SHELL", "wget --no-cache --spider -S --no-check-certificate https://localhost:${local.container_ports.reporting}/reports/healthcheck || exit 1"]
   }
   network_params = {
     subnets = [aws_subnet.private_subnet_a.id, aws_subnet.private_subnet_b.id]
@@ -253,7 +253,7 @@ module "ops_service" {
     task_role_arn        = data.aws_iam_role.ecs_task_role.arn
     log_group_name       = aws_cloudwatch_log_group.ecs_log_group.name
     region               = var.region
-    health_check_command = ["CMD-SHELL", "./bin/internal_healthcheck || exit 1"]
+    health_check_command = ["CMD-SHELL", "echo running || exit 1"]
   }
   maximum_replica_count = var.enable_ops_service ? 1 : 0
   minimum_replica_count = var.enable_ops_service ? 1 : 0

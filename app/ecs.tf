@@ -62,8 +62,8 @@ data "aws_iam_role" "ecs_task_role" {
 }
 
 module "web_service" {
-  container_image = var.HTTP2_compatible_web_image
   source          = "./modules/ecs_service"
+  container_image = var.core_image
   task_config = {
     environment          = local.web_envs
     secrets              = local.task_secrets["CORE"]
@@ -134,7 +134,8 @@ module "web_service" {
 }
 
 module "sidekiq_service" {
-  source = "./modules/ecs_service"
+  source          = "./modules/ecs_service"
+  container_image = var.core_image
   task_config = {
     environment          = local.sidekiq_envs
     secrets              = local.task_secrets["CORE"]
@@ -183,8 +184,8 @@ module "sidekiq_service" {
 }
 
 module "reporting_service" {
-  container_image = var.HTTP2_compatible_reporting_image
   source          = "./modules/ecs_service"
+  container_image = var.reporting_image
   task_config = {
     environment          = local.task_envs["REPORTING"]
     secrets              = local.task_secrets["REPORTING"]
@@ -236,10 +237,11 @@ module "reporting_service" {
 }
 
 module "ops_service" {
-  source       = "./modules/ecs_service"
-  cluster_id   = aws_ecs_cluster.cluster.id
-  cluster_name = aws_ecs_cluster.cluster.name
-  environment  = var.environment
+  source          = "./modules/ecs_service"
+  container_image = var.core_image
+  cluster_id      = aws_ecs_cluster.cluster.id
+  cluster_name    = aws_ecs_cluster.cluster.name
+  environment     = var.environment
   network_params = {
     subnets = [aws_subnet.private_subnet_a.id, aws_subnet.private_subnet_b.id]
     vpc_id  = aws_vpc.application_vpc.id

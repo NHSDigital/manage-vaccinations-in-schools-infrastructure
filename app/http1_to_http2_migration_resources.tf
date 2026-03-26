@@ -123,9 +123,9 @@ module "web_service_temp" {
     services = [
       {
         port_name      = "web-port"
-        discovery_name = "web_temp"
+        discovery_name = "web-temp"
         port           = local.container_ports.web
-        dns_name       = "web_temp"
+        dns_name       = "web-temp"
       }
     ]
   }
@@ -149,9 +149,9 @@ module "reporting_service_temp" {
           value = "HTTPS"
         } : env_var
       ],
-      [{ # The reporting service needs to be able to reach the web service at the web_temp hostname during migration
+      [{ # The reporting service needs to be able to reach the web service at the web-temp hostname during migration
         name  = "MAVIS_ROOT_URL",
-        value = "http://web_temp:4000/"
+        value = "https://web-temp:4000/"
       }]
     )
     secrets              = local.task_secrets["REPORTING"]
@@ -217,6 +217,45 @@ resource "aws_security_group_rule" "web_temp_service_alb_ingress" {
   }
 }
 
+resource "aws_security_group_rule" "rds_web_temp_ingress" {
+  count                    = var.temporary_migration_resources_active ? 1 : 0
+  type                     = "ingress"
+  from_port                = 5432
+  to_port                  = 5432
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.rds_security_group.id
+  source_security_group_id = module.web_service_temp[0].security_group_id
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group_rule" "valkey_web_temp_ingress" {
+  count                    = var.temporary_migration_resources_active ? 1 : 0
+  type                     = "ingress"
+  from_port                = var.valkey_port
+  to_port                  = var.valkey_port
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.valkey.id
+  source_security_group_id = module.web_service_temp[0].security_group_id
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group_rule" "rails_valkey_web_temp_ingress" {
+  count                    = var.temporary_migration_resources_active ? 1 : 0
+  type                     = "ingress"
+  from_port                = aws_elasticache_serverless_cache.rails_cache.endpoint[0].port
+  to_port                  = aws_elasticache_serverless_cache.rails_cache.endpoint[0].port
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.rails_valkey.id
+  source_security_group_id = module.web_service_temp[0].security_group_id
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 resource "aws_security_group_rule" "reporting_temp_service_alb_ingress" {
   count                    = var.temporary_migration_resources_active ? 1 : 0
   type                     = "ingress"
@@ -243,14 +282,14 @@ resource "aws_security_group_rule" "reporting_temp_to_web_temp" {
   }
 }
 
-resource "aws_security_group_rule" "rds_web_temp_ingress" {
+resource "aws_security_group_rule" "reporting_valkey_temp_ingress" {
   count                    = var.temporary_migration_resources_active ? 1 : 0
   type                     = "ingress"
-  from_port                = 5432
-  to_port                  = 5432
+  from_port                = aws_elasticache_serverless_cache.reporting_service.endpoint[0].port
+  to_port                  = aws_elasticache_serverless_cache.reporting_service.endpoint[0].port
   protocol                 = "tcp"
-  security_group_id        = aws_security_group.rds_security_group.id
-  source_security_group_id = module.web_service_temp[0].security_group_id
+  security_group_id        = aws_security_group.reporting_valkey.id
+  source_security_group_id = module.reporting_service_temp[0].security_group_id
   lifecycle {
     create_before_destroy = true
   }

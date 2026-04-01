@@ -1,0 +1,29 @@
+amends "package://github.com/jdx/hk/releases/download/v1.37.0/hk@1.37.0#/Config.pkl"
+import "package://github.com/jdx/hk/releases/download/v1.37.0/hk@1.37.0#/Builtins.pkl"
+
+local linters = new Mapping<String, Step> {
+    ["actionlint"] = Builtins.actionlint
+    ["mdformat"] {
+        glob = List("*.md")
+        check = "mdformat --check {{files}}"
+        fix = "mdformat {{files}}"
+    }
+    ["terraform"] = Builtins.terraform
+    ["tf_lint"] = Builtins.tf_lint
+    ["yamlfmt"] = Builtins.yamlfmt
+}
+
+hooks {
+    ["pre-commit"] {
+        fix = true
+        stash = "git"
+        steps = linters
+    }
+    ["fix"] {
+        fix = true
+        steps = linters
+    }
+    ["check"] {
+        steps = linters
+    }
+}

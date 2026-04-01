@@ -1,6 +1,7 @@
-# MAVIS Infrastructure as Code
+# Manage vaccinations in schools (Mavis) — Infrastructure
 
-This repository contains Terraform configurations for provisioning and managing the infrastructure supporting the MAVIS application.
+This repository contains Terraform configuration for provisioning and managing
+the infrastructure supporting the Mavis application.
 
 ## Overview
 
@@ -13,7 +14,7 @@ The infrastructure is organized into several key components:
 - **Monitoring**: Grafana dashboards alerting configurations
 - **Assurance Testing**: Performance and end-to-end testing infrastructure
 
-## Repository Structure
+## Directory structure
 
 ```
 .
@@ -27,7 +28,17 @@ The infrastructure is organized into several key components:
 └── modules/            # Reusable Terraform modules
 ```
 
-## Documentation
+## Development
+
+We use [`mise`](https://mise.jdx.dev/) and [`hk`](https://hk.jdx.dev/) to
+manage dependencies and hooks.
+
+```shell
+$ mise install
+$ hk fix --all
+```
+
+## Further documentation
 
 - [Infrastructure Overview](documentation/infrastructure-overview.md)
 - [Resource Modification Strategy](documentation/resource-modification-strategy.md)

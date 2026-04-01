@@ -7,3 +7,10 @@ updates:
       interval: daily
     cooldown:
       default-days: 7
+  - package-ecosystem: terraform
+    directory: /
+    target-branch: next
+    schedule:
+      interval: daily
+    cooldown:
+      default-days: 7

@@ -1784,8 +1784,8 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Database Dashboard",
-  "uid": "aurora-postgresql-dashboard",
+  "title": "Mavis Database",
+  "uid": "mavis-database",
   "version": 40,
   "weekStart": ""
 }

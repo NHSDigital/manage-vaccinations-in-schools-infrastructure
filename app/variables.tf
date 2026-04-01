@@ -274,7 +274,13 @@ locals {
         name  = "EXPORT_WEB_METRICS"
         value = tostring(local.export_prometheus_metrics)
       }
-    ]
+    ],
+    var.enable_mock_careplus_service ? [
+      {
+        name  = "MOCK_CAREPLUS_URL"
+        value = "http://mock-careplus:${local.container_ports.mock_careplus}"
+      }
+    ] : []
   )
 
   task_secrets = {
@@ -282,10 +288,11 @@ locals {
     REPORTING = concat(local.secret_values["REPORTING"], local.parameter_values["REPORTING"])
   }
   container_ports = {
-    web       = 4000
-    sidekiq   = 4000
-    ops       = 4000
-    reporting = 5000
+    web           = 4000
+    sidekiq       = 4000
+    ops           = 4000
+    reporting     = 5000
+    mock_careplus = 8080
   }
 }
 
@@ -388,6 +395,13 @@ variable "enable_ops_service" {
   type        = bool
   default     = false
   description = "Number of replicas for the ops service"
+  nullable    = false
+}
+
+variable "enable_mock_careplus_service" {
+  type        = bool
+  default     = false
+  description = "Enable the mock CarePlus service"
   nullable    = false
 }
 

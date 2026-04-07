@@ -99,6 +99,17 @@ variable "network_params" {
   nullable    = false
 }
 
+variable "port_mappings" {
+  type = list(object({
+    name          = string
+    containerPort = number
+    protocol      = string
+  }))
+  description = "List of port mappings for the container"
+  default     = []
+  nullable    = false
+}
+
 variable "service_connect_config" {
   type = object({
     namespace = string
@@ -133,20 +144,6 @@ variable "container_name" {
   description = "Name of the essential container in the task. Also the container which is serviced by the load balancer if applicable."
   default     = "application"
   nullable    = false
-}
-
-variable "container_port" {
-  type        = number
-  description = "The port on the container that the service will bind to. If not specified, it defaults to 4000."
-  default     = 4000
-  nullable    = false
-}
-
-variable "host_port" {
-  type        = number
-  description = "The port on the host that the container will bind to. If not specified, it defaults to the same value as container_port."
-  default     = null
-  nullable    = true
 }
 
 variable "readonly_file_system" {

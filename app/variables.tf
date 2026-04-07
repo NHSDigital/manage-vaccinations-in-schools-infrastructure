@@ -284,6 +284,7 @@ locals {
   container_ports = {
     web       = 4000
     sidekiq   = 4000
+    ops       = 4000
     reporting = 5000
   }
 }

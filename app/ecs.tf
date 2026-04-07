@@ -111,6 +111,13 @@ module "web_service" {
   maximum_replica_count = var.maximum_web_replicas
   environment           = var.environment
   server_type           = "web"
+  port_mappings = [
+    {
+      name          = "web-port"
+      containerPort = local.container_ports.web
+      protocol      = "tcp"
+    }
+  ]
   service_connect_config = {
     namespace = aws_service_discovery_private_dns_namespace.internal.arn
     services = [
@@ -174,6 +181,13 @@ module "sidekiq_service" {
   cluster_name = aws_ecs_cluster.cluster.name
   environment  = var.environment
   server_type  = "sidekiq"
+  port_mappings = [
+    {
+      name          = "sidekiq-port"
+      containerPort = local.container_ports.sidekiq
+      protocol      = "tcp"
+    }
+  ]
 
   depends_on = [
     aws_rds_cluster_instance.core,
@@ -214,13 +228,19 @@ module "reporting_service" {
       scale_out_cooldown     = 300
     }
   })
-  container_port        = local.container_ports.reporting
   minimum_replica_count = var.minimum_reporting_replicas
   maximum_replica_count = var.maximum_reporting_replicas
   cluster_id            = aws_ecs_cluster.cluster.id
   cluster_name          = aws_ecs_cluster.cluster.name
   environment           = var.environment
   server_type           = "reporting"
+  port_mappings = [
+    {
+      name          = "reporting-port"
+      containerPort = local.container_ports.reporting
+      protocol      = "tcp"
+    }
+  ]
   service_connect_config = {
     namespace = aws_service_discovery_private_dns_namespace.internal.arn
     services  = []
@@ -258,5 +278,12 @@ module "ops_service" {
   minimum_replica_count = var.enable_ops_service ? 1 : 0
   server_type           = "none"
   server_type_name      = "ops"
-  readonly_file_system  = false
+  port_mappings = [
+    {
+      name          = "ops-port"
+      containerPort = local.container_ports.ops
+      protocol      = "tcp"
+    }
+  ]
+  readonly_file_system = false
 }

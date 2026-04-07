@@ -113,14 +113,7 @@ resource "aws_ecs_task_definition" "this" {
       image                  = "CHANGE_ME"
       essential              = true
       readonlyRootFileSystem = var.readonly_file_system
-      portMappings = [
-        {
-          name          = var.service_connect_config != null && length(var.service_connect_config.services) > 0 ? var.service_connect_config.services[0].port_name : null
-          containerPort = var.container_port
-          hostPort      = var.host_port == null ? var.container_port : var.host_port
-          protocol      = "tcp"
-        }
-      ]
+      portMappings           = var.port_mappings
       environment = concat(
         var.task_config.environment, [
           {

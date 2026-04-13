@@ -249,6 +249,10 @@ locals {
       {
         name  = "SENTRY_ENVIRONMENT"
         value = var.environment
+      },
+      {
+        name  = "MAVIS_ROOT_URL"
+        value = "http://web:${local.container_ports.web}/"
       }
     ]
   }

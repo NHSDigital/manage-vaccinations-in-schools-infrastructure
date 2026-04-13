@@ -110,7 +110,7 @@ resource "aws_ecs_task_definition" "this" {
   container_definitions = jsonencode(concat([
     {
       name                   = var.container_name
-      image                  = "CHANGE_ME"
+      image                  = var.template_image
       essential              = true
       readonlyRootFileSystem = var.readonly_file_system
       portMappings           = var.port_mappings

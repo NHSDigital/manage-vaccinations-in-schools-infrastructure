@@ -28,6 +28,7 @@ module "mock_careplus_service" {
   }
   minimum_replica_count = 1
   maximum_replica_count = 1
+  template_image        = "393416225559.dkr.ecr.eu-west-2.amazonaws.com/mavis/mock-careplus:default"
   port_mappings = [
     {
       name          = "mock-careplus-port"

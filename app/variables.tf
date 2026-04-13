@@ -13,7 +13,7 @@ variable "environment" {
     condition = contains([
       "sandbox-alpha", "sandbox-beta", "qa", "performance", "test", "training", "preview", "pentest", "production"
     ], var.environment)
-    error_message = "Valid values for environment: sandbox-alpha, sandbox-beta, qa, performance, test, training, preview, production."
+    error_message = "Valid values for environment: sandbox-alpha, sandbox-beta, qa, performance, test, training, preview, pentest, production."
   }
 }
 
@@ -253,6 +253,10 @@ locals {
       {
         name  = "MAVIS_ROOT_URL"
         value = "http://web:${local.container_ports.web}/"
+      },
+      {
+        name  = "HTTP_MODE",
+        value = "HTTPS"
       }
     ]
   }
@@ -277,6 +281,14 @@ locals {
       {
         name  = "EXPORT_WEB_METRICS"
         value = tostring(local.export_prometheus_metrics)
+      },
+      {
+        name  = "HTTP_VERSION",
+        value = "http2"
+      },
+      {
+        name  = "HTTP_PROTOCOL",
+        value = "https"
       }
     ],
     var.enable_mock_careplus_service ? [

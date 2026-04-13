@@ -19,7 +19,7 @@ variable "server_type_name" {
 
 variable "minimum_replica_count" {
   type        = number
-  description = "Minimum amount of allowed replicas for the service. Also the replica count when creating th service."
+  description = "Minimum amount of allowed replicas for the service. Also the replica count when creating the service."
   nullable    = false
 }
 
@@ -45,6 +45,12 @@ variable "autoscaling_policies" {
   nullable    = false
 }
 
+variable "container_image" {
+  type        = string
+  default     = "CHANGE_ME"
+  description = "The container image to use for the main application container in the task definition."
+  nullable    = false
+}
 
 variable "task_config" {
   type = object({

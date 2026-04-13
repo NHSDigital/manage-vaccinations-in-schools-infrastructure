@@ -90,7 +90,6 @@ resource "aws_iam_role" "monitoring_deploy" {
   assume_role_policy = templatefile("resources/iam_role_github_trust_policy_${var.environment}.json.tftpl", {
     account_id = var.account_id
     repository_list = [
-      "repo:NHSDigital/manage-vaccinations-in-schools",
       "repo:NHSDigital/manage-vaccinations-in-schools-infrastructure"
     ]
   })
@@ -108,6 +107,32 @@ resource "aws_iam_policy" "monitoring_deploy" {
 resource "aws_iam_role_policy_attachment" "monitoring_deploy" {
   for_each   = local.monitoring_policies
   role       = aws_iam_role.monitoring_deploy.name
+  policy_arn = each.value
+}
+
+resource "aws_iam_role" "grafana_apply" {
+  name        = "GithubApplyGrafanaConfiguration"
+  description = "Role allowing github workflows to apply configuration to Grafana"
+  assume_role_policy = templatefile("resources/iam_role_github_trust_policy_${var.environment}.json.tftpl", {
+    account_id = var.account_id
+    repository_list = [
+      "repo:NHSDigital/manage-vaccinations-in-schools-infrastructure"
+    ]
+  })
+}
+
+resource "aws_iam_policy" "grafana_apply" {
+  name        = "ApplyGrafanaConfigurationPolicy"
+  description = "Permissions for applying configuration to Grafana from github workflows"
+  policy      = file("resources/iam_policy_DeployGrafanaConfiguration.json")
+  lifecycle {
+    ignore_changes = [description]
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "grafana_apply" {
+  for_each   = local.grafana_apply_policies
+  role       = aws_iam_role.grafana_apply.name
   policy_arn = each.value
 }
 

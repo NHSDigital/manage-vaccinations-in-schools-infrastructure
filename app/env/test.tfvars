@@ -21,4 +21,5 @@ valkey_failover_enabled   = false
 minimum_reporting_replicas = 2
 maximum_reporting_replicas = 4
 
-fast_rolling_deployments = true
+enable_mock_careplus_service = true
+fast_rolling_deployments     = true

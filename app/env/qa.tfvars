@@ -20,5 +20,6 @@ max_aurora_capacity_units = 16
 minimum_reporting_replicas = 2
 maximum_reporting_replicas = 4
 
-enable_ops_service       = true
-fast_rolling_deployments = true
+enable_ops_service           = true
+enable_mock_careplus_service = true
+fast_rolling_deployments     = true

@@ -118,11 +118,14 @@ resource "aws_iam_role" "deploy_ecs_service" {
   description = "Role allowing terraform deployment of ECS services from github workflows"
   assume_role_policy = templatefile("resources/iam_role_github_trust_policy_${var.environment}.json.tftpl", {
     account_id = var.account_id,
-    repository_list = [
-      "repo:NHSDigital/manage-vaccinations-in-schools",
-      "repo:NHSDigital/manage-vaccinations-in-schools-reporting",
-      "repo:NHSDigital/manage-vaccinations-in-schools-infrastructure"
-    ]
+    repository_list = concat(
+      [
+        "repo:NHSDigital/manage-vaccinations-in-schools",
+        "repo:NHSDigital/manage-vaccinations-in-schools-reporting",
+        "repo:NHSDigital/manage-vaccinations-in-schools-infrastructure"
+      ],
+      var.environment == "development" ? ["repo:NHSDigital/manage-vaccinations-in-schools-testing"] : []
+    )
   })
 }
 

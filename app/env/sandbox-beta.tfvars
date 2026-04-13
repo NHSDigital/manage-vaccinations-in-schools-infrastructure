@@ -26,3 +26,5 @@ valkey_log_retention_days = 3
 valkey_failover_enabled   = false
 
 fast_rolling_deployments = true
+
+enable_mock_careplus_service = true

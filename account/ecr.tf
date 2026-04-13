@@ -49,3 +49,15 @@ resource "aws_ecr_lifecycle_policy" "development_postgres_db" {
   repository = aws_ecr_repository.development_postgres_db.name
   policy     = file("resources/ecr_lifecycle_policy_keep_10.json")
 }
+
+resource "aws_ecr_repository" "mavis_mock_careplus" {
+  count                = var.environment == "development" ? 1 : 0
+  name                 = "mavis/mock-careplus"
+  image_tag_mutability = "MUTABLE"
+}
+
+resource "aws_ecr_lifecycle_policy" "mavis_mock_careplus" {
+  count      = var.environment == "development" ? 1 : 0
+  repository = aws_ecr_repository.mavis_mock_careplus[0].name
+  policy     = file("resources/ecr_lifecycle_policy.json")
+}

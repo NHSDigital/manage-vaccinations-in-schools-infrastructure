@@ -120,34 +120,11 @@ jobs:
           terraform apply ${{ runner.temp }}/tfplan-aws
   apply-grafana:
     name: Terraform apply (Grafana)
-    runs-on: ubuntu-latest
     needs: [plan-aws, apply-aws]
     if: always() && needs.plan-aws.result == 'success' && (needs.apply-aws.result == 'success' || needs.apply-aws.result == 'skipped')
     permissions:
       id-token: write
-    defaults:
-      run:
-        working-directory: monitoring
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ env.git_ref_to_deploy }}
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v5
-        with:
-          role-to-assume: ${{ env.aws_role }}
-          aws-region: eu-west-2
-      - name: Install terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.13.3
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y jq uuid-runtime
-      - name: Deploy Grafana using tf_grafana.sh
-        run: |
-          export TF_VAR_slack_webhook_url=${{ inputs.environment == 'production' && secrets.GRAFANA_ALERTS_SLACK_WEBHOOK || secrets.GRAFANA_TEST_ALERTS_SLACK_WEBHOOK }}
-          ./tf_grafana.sh "$environment" plan --plan-file ${{ runner.temp }}/out
-          ./tf_grafana.sh "$environment" apply --plan-file ${{ runner.temp }}/out
+    uses: ./.github/workflows/apply-grafana-config.yml
+    with:
+      environment: ${{ inputs.environment }}
+      git_ref_to_deploy: ${{ inputs.git_ref_to_deploy }}

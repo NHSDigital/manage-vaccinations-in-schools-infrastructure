@@ -118,13 +118,25 @@ module "web_service_temp" {
   environment           = var.environment
   server_type           = "web"
   server_type_name      = "web-temp"
+  port_mappings = [
+    {
+      name          = "web-port"
+      containerPort = local.container_ports.web
+      appProtocol   = "http2"
+    },
+    {
+      name          = "service-connect-port"
+      containerPort = local.container_ports.web-service-connect
+      appProtocol   = "http"
+    }
+  ]
   service_connect_config = {
     namespace = aws_service_discovery_private_dns_namespace.internal.arn
     services = [
       {
-        port_name      = "web-port"
+        port_name      = "service-connect-port"
         discovery_name = "web-temp"
-        port           = local.container_ports.web
+        port           = local.container_ports.web-service-connect
         dns_name       = "web-temp"
       }
     ]
@@ -147,12 +159,11 @@ module "reporting_service_temp" {
         for env_var in local.task_envs["REPORTING"] : env_var.name == "HTTP_MODE" ? {
           name  = env_var.name
           value = "HTTPS"
+          } : env_var.name == "MAVIS_ROOT_URL" ? {
+          name  = env_var.name
+          value = "http://web-temp:${local.container_ports.web-service-connect}/"
         } : env_var
-      ],
-      [{ # The reporting service needs to be able to reach the web service at the web-temp hostname during migration
-        name  = "MAVIS_ROOT_URL",
-        value = "https://web-temp:4000/"
-      }]
+      ]
     )
     secrets              = local.task_secrets["REPORTING"]
     cpu                  = 1024
@@ -183,7 +194,13 @@ module "reporting_service_temp" {
       scale_out_cooldown     = 300
     }
   })
-  container_port        = local.container_ports.reporting
+  port_mappings = [
+    {
+      name          = "reporting-port"
+      containerPort = local.container_ports.reporting
+      appProtocol   = "http2"
+    }
+  ]
   minimum_replica_count = var.minimum_reporting_replicas
   maximum_replica_count = var.maximum_reporting_replicas
   cluster_id            = aws_ecs_cluster.cluster.id
@@ -197,7 +214,8 @@ module "reporting_service_temp" {
   }
 
   depends_on = [
-    aws_iam_role.ecs_deploy
+    aws_iam_role.ecs_deploy,
+    module.web_service_temp
   ]
 }
 
@@ -272,8 +290,8 @@ resource "aws_security_group_rule" "reporting_temp_service_alb_ingress" {
 resource "aws_security_group_rule" "reporting_temp_to_web_temp" {
   count                    = var.temporary_migration_resources_active ? 1 : 0
   type                     = "ingress"
-  from_port                = local.container_ports.web
-  to_port                  = local.container_ports.web
+  from_port                = local.container_ports.web-service-connect
+  to_port                  = local.container_ports.web-service-connect
   protocol                 = "tcp"
   security_group_id        = module.web_service_temp[0].security_group_id
   source_security_group_id = module.reporting_service_temp[0].security_group_id

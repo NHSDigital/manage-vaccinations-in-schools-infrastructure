@@ -32,7 +32,7 @@ module "mock_careplus_service" {
     {
       name          = "mock-careplus-port"
       containerPort = local.container_ports.mock_careplus
-      protocol      = "tcp"
+      appProtocol   = "http"
     }
   ]
   service_connect_config = {

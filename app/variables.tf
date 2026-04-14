@@ -252,7 +252,7 @@ locals {
       },
       {
         name  = "MAVIS_ROOT_URL"
-        value = "http://web:${local.container_ports.web}/"
+        value = "http://web:${local.container_ports.web-service-connect}/"
       },
       {
         name  = "HTTP_MODE",
@@ -289,6 +289,10 @@ locals {
       {
         name  = "HTTP_PROTOCOL",
         value = "https"
+      },
+      {
+        name  = "SERVICE_CONNECT_PORT"
+        value = local.container_ports.web-service-connect
       }
     ],
     var.enable_mock_careplus_service ? [
@@ -304,11 +308,12 @@ locals {
     REPORTING = concat(local.secret_values["REPORTING"], local.parameter_values["REPORTING"])
   }
   container_ports = {
-    web           = 4000
-    sidekiq       = 4000
-    ops           = 4000
-    reporting     = 5000
-    mock_careplus = 8080
+    web                 = 4000
+    web-service-connect = 4001
+    sidekiq             = 4000
+    ops                 = 4000
+    reporting           = 5000
+    mock_careplus       = 8080
   }
 }
 

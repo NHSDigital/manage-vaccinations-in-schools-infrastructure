@@ -24,8 +24,8 @@ resource "aws_security_group_rule" "reporting_service_alb_ingress" {
 
 resource "aws_security_group_rule" "reporting_to_web_service" {
   type                     = "ingress"
-  from_port                = local.container_ports.web
-  to_port                  = local.container_ports.web
+  from_port                = contains(["replace-service", "switch-traffic-back-to-original"], var.migration_stage) ? local.container_ports.web-service-connect : local.container_ports.web
+  to_port                  = contains(["replace-service", "switch-traffic-back-to-original"], var.migration_stage) ? local.container_ports.web-service-connect : local.container_ports.web
   protocol                 = "tcp"
   security_group_id        = module.web_service.security_group_id
   source_security_group_id = module.reporting_service.security_group_id
@@ -112,20 +112,31 @@ module "web_service" {
   maximum_replica_count = var.maximum_web_replicas
   environment           = var.environment
   server_type           = "web"
-  port_mappings = [
+  port_mappings = contains(["replace-service", "switch-traffic-back-to-original"], var.migration_stage) ? [
     {
       name          = "web-port"
       containerPort = local.container_ports.web
-      protocol      = "tcp"
+      appProtocol   = null
+    },
+    {
+      name          = "service-connect-port"
+      containerPort = local.container_ports.web-service-connect
+      appProtocol   = "http"
+    }] : [
+    {
+      name          = "web-port"
+      containerPort = local.container_ports.web
+      appProtocol   = "http2"
     }
   ]
+
   service_connect_config = {
     namespace = aws_service_discovery_private_dns_namespace.internal.arn
     services = [
       {
-        port_name      = "web-port"
+        port_name      = contains(["replace-service", "switch-traffic-back-to-original"], var.migration_stage) ? "service-connect-port" : "web-port"
         discovery_name = "web"
-        port           = local.container_ports.web
+        port           = local.container_ports.web-service-connect
         dns_name       = "web"
       }
     ]
@@ -186,7 +197,7 @@ module "sidekiq_service" {
     {
       name          = "sidekiq-port"
       containerPort = local.container_ports.sidekiq
-      protocol      = "tcp"
+      appProtocol   = null
     }
   ]
 
@@ -236,11 +247,16 @@ module "reporting_service" {
   cluster_name          = aws_ecs_cluster.cluster.name
   environment           = var.environment
   server_type           = "reporting"
-  port_mappings = [
+  port_mappings = contains(["replace-service", "switch-traffic-back-to-original"], var.migration_stage) ? [
     {
       name          = "reporting-port"
       containerPort = local.container_ports.reporting
-      protocol      = "tcp"
+      appProtocol   = "http2"
+    }] : [
+    {
+      name          = "reporting-port"
+      containerPort = local.container_ports.reporting
+      appProtocol   = null
     }
   ]
   service_connect_config = {
@@ -251,7 +267,8 @@ module "reporting_service" {
   fast_rolling_deployments = var.fast_rolling_deployments
 
   depends_on = [
-    aws_iam_role.ecs_deploy
+    aws_iam_role.ecs_deploy,
+    module.web_service
   ]
 }
 
@@ -283,7 +300,7 @@ module "ops_service" {
     {
       name          = "ops-port"
       containerPort = local.container_ports.ops
-      protocol      = "tcp"
+      appProtocol   = null
     }
   ]
   readonly_file_system = false

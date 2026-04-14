@@ -109,7 +109,7 @@ variable "port_mappings" {
   type = list(object({
     name          = string
     containerPort = number
-    protocol      = string
+    appProtocol   = string
   }))
   description = "List of port mappings for the container"
   default     = []

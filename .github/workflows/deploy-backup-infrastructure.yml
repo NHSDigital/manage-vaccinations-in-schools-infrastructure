@@ -27,14 +27,14 @@ jobs:
       id-token: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.1.0
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v5
+        uses: aws-actions/configure-aws-credentials@cabfdba3510de1431bac9dba27511d97497fc100 # v5.1.0
         with:
           role-to-assume: ${{ env.aws_role }}
           aws-region: eu-west-2
       - name: Install terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.0.0
         with:
           terraform_version: 1.13.3
       - name: Terraform Plan
@@ -53,12 +53,12 @@ jobs:
           set -e
           ../../scripts/validate_plan.sh ${{ runner.temp }}/tf_stdout
       - name: Upload artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.1.0
         with:
           name: tfplan_infrastructure-${{ inputs.environment }}
           path: ${{ runner.temp }}/tfplan
       - name: Upload Lambda
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.1.0
         with:
           name: backup_alert_lambda_${{ inputs.environment }}
           path: backup/source/lambda/backup_alert_function.zip
@@ -71,24 +71,24 @@ jobs:
       id-token: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.1.0
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v5
+        uses: aws-actions/configure-aws-credentials@cabfdba3510de1431bac9dba27511d97497fc100 # v5.1.0
         with:
           role-to-assume: ${{ env.aws_role }}
           aws-region: eu-west-2
       - name: Download artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: tfplan_infrastructure-${{ inputs.environment }}
           path: ${{ runner.temp }}
       - name: Download Lambda zip
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: backup_alert_lambda_${{ inputs.environment }}
           path: backup/source/lambda
       - name: Install terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.0.0
         with:
           terraform_version: 1.13.3
       - name: Apply the changes

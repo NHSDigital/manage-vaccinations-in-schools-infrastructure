@@ -31,6 +31,11 @@ module "db_access_service" {
   }
   server_type      = "none"
   server_type_name = "data-replication"
+  port_mappings = [{
+    name          = "data-replication-port"
+    containerPort = 4000
+    protocol      = "tcp"
+  }]
   task_config = {
     environment          = local.task_envs
     secrets              = local.task_secrets

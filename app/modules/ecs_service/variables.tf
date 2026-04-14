@@ -167,6 +167,13 @@ variable "fast_rolling_deployments" {
   nullable    = false
 }
 
+variable "template_image" {
+  type        = string
+  description = "Docker image for the template task definition"
+  default     = "CHANGE_ME"
+  nullable    = false
+}
+
 locals {
   autoscaling_enabled = var.maximum_replica_count > var.minimum_replica_count
   server_type_name    = var.server_type_name != null ? var.server_type_name : var.server_type

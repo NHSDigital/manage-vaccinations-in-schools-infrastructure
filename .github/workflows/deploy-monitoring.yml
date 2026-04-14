@@ -35,16 +35,16 @@ jobs:
         working-directory: monitoring/aws
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.1.0
         with:
           ref: ${{ env.git_ref_to_deploy }}
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v5
+        uses: aws-actions/configure-aws-credentials@cabfdba3510de1431bac9dba27511d97497fc100 # v5.1.0
         with:
           role-to-assume: ${{ env.aws_role }}
           aws-region: eu-west-2
       - name: Install terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.0.0
         with:
           terraform_version: 1.13.3
       - name: Terraform Plan
@@ -69,7 +69,7 @@ jobs:
             echo "Infrastructure changes detected"
           fi
       - name: Upload AWS plan artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.1.0
         with:
           name: tfplan_monitoring_aws-${{ inputs.environment }}
           path: ${{ runner.temp }}/tfplan-aws
@@ -79,7 +79,7 @@ jobs:
     needs: plan-aws
     if: ${{ inputs.environment == 'production' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.1.0
       - uses: ./.github/actions/notify-approval-required
         with:
           webhook: ${{ secrets.SLACK_MAVIS_RELEASES_WEBHOOK_URL }}
@@ -96,21 +96,21 @@ jobs:
         working-directory: monitoring/aws
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.1.0
         with:
           ref: ${{ env.git_ref_to_deploy }}
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v5
+        uses: aws-actions/configure-aws-credentials@cabfdba3510de1431bac9dba27511d97497fc100 # v5.1.0
         with:
           role-to-assume: ${{ env.aws_role }}
           aws-region: eu-west-2
       - name: Download AWS plan artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: tfplan_monitoring_aws-${{ inputs.environment }}
           path: ${{ runner.temp }}
       - name: Install terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.0.0
         with:
           terraform_version: 1.13.3
       - name: Apply AWS changes

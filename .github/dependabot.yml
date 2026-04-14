@@ -2,14 +2,14 @@ version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
-    target-branch: next
+    target-branch: main
     schedule:
       interval: daily
     cooldown:
       default-days: 7
   - package-ecosystem: terraform
     directory: /
-    target-branch: next
+    target-branch: main
     schedule:
       interval: daily
     cooldown:

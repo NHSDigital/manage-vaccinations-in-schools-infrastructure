@@ -128,7 +128,6 @@ locals {
       MAVIS__SPLUNK__ENABLED                          = "CHANGE_ME"
       MAVIS__ACADEMIC_YEAR_TODAY_OVERRIDE             = "CHANGE_ME"
       MAVIS__ACADEMIC_YEAR_NUMBER_OF_PREPARATION_DAYS = "CHANGE_ME"
-      MAVIS__PDS__ENQUEUE_BULK_UPDATES                = "CHANGE_ME"
       MAVIS__PDS__RATE_LIMIT_PER_SECOND               = "CHANGE_ME"
     })
     REPORTING = local.is_production ? {} : tomap({

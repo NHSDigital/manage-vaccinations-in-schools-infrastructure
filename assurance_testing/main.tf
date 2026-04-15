@@ -32,6 +32,9 @@ resource "aws_ecr_repository" "mavis_development" {
   image_tag_mutability = "IMMUTABLE"
 }
 
+data "aws_ecr_repository" "reporting" {
+  name = "mavis/reporting"
+}
 
 resource "aws_ecr_lifecycle_policy" "performance" {
   repository = aws_ecr_repository.performance.name

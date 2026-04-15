@@ -78,13 +78,10 @@ resource "aws_ecs_task_definition" "containerized_development" {
         {
           name  = "SERVER_TYPE"
           value = "web"
-        }
-      ]
-      portMappings = [
+        },
         {
-          containerPort = 4000
-          hostPort      = 4000
-          protocol      = "tcp"
+          name  = "PORT"
+          value = "4001"
         }
       ]
       logConfiguration = {
@@ -96,7 +93,7 @@ resource "aws_ecs_task_definition" "containerized_development" {
         }
       }
       healthCheck = {
-        command     = ["CMD-SHELL", "curl -f http://localhost:4000/health/database || exit 1"]
+        command     = ["CMD-SHELL", "curl -f http://localhost:4001/health/database || exit 1"]
         interval    = 30
         timeout     = 5
         retries     = 3
@@ -138,7 +135,7 @@ resource "aws_ecs_task_definition" "containerized_development" {
         },
         {
           name  = "HTTP_PORT"
-          value = "5000"
+          value = "5001"
         }
       ]
       logConfiguration = {
@@ -183,6 +180,93 @@ resource "aws_ecs_task_definition" "containerized_development" {
       name      = "mavis-development-redis"
       image     = "redis:8.4.0-alpine"
       essential = false
+    },
+    {
+      name      = "mavis-development-reporting"
+      image     = "${data.aws_ecr_repository.reporting.repository_url}:e2e-testing"
+      essential = true
+      command   = ["/bin/sh", "-c", ". /app/export_root_url.sh && /app/startup.sh"]
+      environment = [
+        {
+          name  = "VALKEY_ADDRESS"
+          value = "redis://localhost"
+        },
+        {
+          name  = "VALKEY_PORT"
+          value = "6379"
+        },
+        {
+          name  = "MISE_ENV"
+          value = "development"
+        },
+        {
+          name  = "HTTP_MODE"
+          value = "HTTP"
+        }
+      ],
+      portMappings = [
+        {
+          containerPort = 5000
+          hostPort      = 5000
+          protocol      = "tcp"
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = aws_cloudwatch_log_group.this.name
+          awslogs-region        = "eu-west-2"
+          awslogs-stream-prefix = "${var.identifier}-reporting-logs"
+        }
+      }
+      healthCheck = {
+        command     = ["CMD-SHELL", "wget --no-cache --spider -S http://localhost:5000/reports/healthcheck || exit 1"]
+        interval    = 30
+        timeout     = 5
+        retries     = 3
+        startPeriod = 60
+      }
+    },
+    {
+      name      = "mavis-development-nginx"
+      image     = "nginx:alpine"
+      essential = true
+      portMappings = [
+        {
+          containerPort = 4000
+          hostPort      = 4000
+          protocol      = "tcp"
+        }
+      ]
+      command = [
+        "/bin/sh",
+        "-c",
+        <<-EOT
+          cat <<'EOF' > /etc/nginx/conf.d/default.conf
+          server {
+            listen 4000;
+            location /reports {
+              proxy_pass http://localhost:5000;
+              proxy_set_header Host $host:$server_port;
+              proxy_cookie_path / "/; SameSite=Lax";
+            }
+            location / {
+              proxy_pass http://localhost:4001;
+              proxy_set_header Host $host:$server_port;
+            }
+          }
+          EOF
+          exec nginx -g 'daemon off;'
+        EOT
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = aws_cloudwatch_log_group.this.name
+          awslogs-region        = "eu-west-2"
+          awslogs-stream-prefix = "${var.identifier}-nginx-logs"
+        }
+      }
     }
   ])
   tags = {

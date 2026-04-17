@@ -1,0 +1,21 @@
+name: Stop long-running assurance testing tasks
+run-name: Stopping abandoned tasks in assurance-testing cluster
+on:
+  schedule:
+    - cron: "0 0,12 * * *"
+  workflow_dispatch:
+permissions: {}
+jobs:
+  stop-tasks:
+    name: Stop long-running tasks
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.1.0
+      - uses: aws-actions/configure-aws-credentials@cabfdba3510de1431bac9dba27511d97497fc100 # v5.1.0
+        with:
+          role-to-assume: arn:aws:iam::393416225559:role/GitHubAssuranceTestRole
+          aws-region: eu-west-2
+      - name: Stop tasks running longer than 12 hours
+        run: scripts/stop_long_running_ecs_tasks.sh

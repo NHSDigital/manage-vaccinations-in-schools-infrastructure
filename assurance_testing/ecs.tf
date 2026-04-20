@@ -178,7 +178,7 @@ resource "aws_ecs_task_definition" "containerized_development" {
     },
     {
       name      = "mavis-development-redis"
-      image     = "redis:8.4.0-alpine"
+      image     = "redis@sha256:e1b6db24cb4fdd89f4bc9be09f671ea3bec92fbd7042554f76c34aa2be9b59ad"
       essential = false
     },
     {
@@ -229,7 +229,7 @@ resource "aws_ecs_task_definition" "containerized_development" {
     },
     {
       name      = "mavis-development-nginx"
-      image     = "nginx:alpine"
+      image     = "nginx@sha256:2fb5d772cea6ef1a8dab525df1b9485289eee167d26af9613fce27a12c060caa"
       essential = true
       portMappings = [
         {

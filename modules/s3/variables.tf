@@ -23,4 +23,3 @@ variable "additional_policy_statements" {
   type        = list(any)
   default     = []
 }
-

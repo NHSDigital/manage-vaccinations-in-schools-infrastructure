@@ -54,8 +54,9 @@ variable "ssl_policy" {
 }
 
 locals {
-  unique_host_headers = toset(values(var.http_hosts))
-  host_headers        = tolist(local.unique_host_headers)
+  unique_host_headers      = toset(values(var.http_hosts))
+  host_headers             = tolist(local.unique_host_headers)
+  publically_blocked_paths = var.environment == "production" ? ["/api/*"] : ["/api/reporting*"]
 }
 
 variable "dns_certificate_arn" {

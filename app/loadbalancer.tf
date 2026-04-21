@@ -185,6 +185,25 @@ resource "aws_lb_listener_certificate" "https_sni_certificates" {
   certificate_arn = local.additional_sni_certificates[count.index]
 }
 
+resource "aws_lb_listener_rule" "blocked_paths" {
+  listener_arn = aws_lb_listener.app_listener_https.arn
+  priority     = 1
+  action {
+    type = "fixed-response"
+
+    fixed_response {
+      content_type = "text/plain"
+      message_body = "ACCESS DENIED"
+      status_code  = "405"
+    }
+  }
+  condition {
+    path_pattern {
+      values = local.publically_blocked_paths
+    }
+  }
+}
+
 resource "aws_lb_listener_rule" "forward_to_app" {
   listener_arn = aws_lb_listener.app_listener_https.arn
   priority     = 50000

@@ -106,8 +106,11 @@ resource "aws_iam_policy" "get_s3_object" {
       {
         Effect = "Allow"
         Action = [
+          "s3:ListBucket",
           "s3:GetObject",
-          "s3:ListBucket"
+          "s3:PutObject",
+          "s3:DeleteObject",
+          "s3:DeleteObjectVersion",
         ]
         Resource = [
           module.filetransfer_bucket.arn,

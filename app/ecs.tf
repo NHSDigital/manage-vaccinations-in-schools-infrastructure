@@ -188,6 +188,10 @@ module "sidekiq_service" {
       protocol      = "tcp"
     }
   ]
+  service_connect_config = {
+    namespace = aws_service_discovery_private_dns_namespace.internal.arn
+    services  = []
+  }
 
   depends_on = [
     aws_rds_cluster_instance.core,

@@ -61,3 +61,16 @@ resource "aws_security_group_rule" "web_to_mock_careplus" {
     create_before_destroy = true
   }
 }
+
+resource "aws_security_group_rule" "sidekiq_to_mock_careplus" {
+  count                    = var.enable_mock_careplus_service ? 1 : 0
+  type                     = "ingress"
+  from_port                = local.container_ports.mock_careplus
+  to_port                  = local.container_ports.mock_careplus
+  protocol                 = "tcp"
+  security_group_id        = module.mock_careplus_service[0].security_group_id
+  source_security_group_id = module.sidekiq_service.security_group_id
+  lifecycle {
+    create_before_destroy = true
+  }
+}

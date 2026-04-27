@@ -226,7 +226,12 @@ locals {
         name  = "SENTRY_ENVIRONMENT"
         value = var.environment
       },
-      ], local.sandbox_envs,
+      ],
+      local.sandbox_envs,
+      var.enable_mock_careplus_service ? [{
+        name  = "MOCK_CAREPLUS_URL"
+        value = "http://mock-careplus:${local.container_ports.mock_careplus}"
+      }] : [],
     )
 
     REPORTING = [
@@ -278,13 +283,7 @@ locals {
         name  = "EXPORT_WEB_METRICS"
         value = tostring(local.export_prometheus_metrics)
       }
-    ],
-    var.enable_mock_careplus_service ? [
-      {
-        name  = "MOCK_CAREPLUS_URL"
-        value = "http://mock-careplus:${local.container_ports.mock_careplus}"
-      }
-    ] : []
+    ]
   )
 
   task_secrets = {

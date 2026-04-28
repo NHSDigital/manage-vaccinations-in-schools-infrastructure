@@ -18,10 +18,11 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 2,
+  "id": 15,
   "links": [],
   "panels": [
     {
+      "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -29,6 +30,7 @@
         "y": 0
       },
       "id": 16,
+      "panels": [],
       "title": "Utilization",
       "type": "row"
     },
@@ -583,9 +585,9 @@
         "x": 0,
         "y": 17
       },
-      "id": 18,
+      "id": 26,
       "panels": [],
-      "title": "Blockers and Connections",
+      "title": "Log insights",
       "type": "row"
     },
     {
@@ -643,8 +645,7 @@
                 "value": 80
               }
             ]
-          },
-          "unit": "short"
+          }
         },
         "overrides": []
       },
@@ -654,7 +655,7 @@
         "x": 0,
         "y": 18
       },
-      "id": 9,
+      "id": 21,
       "options": {
         "legend": {
           "calcs": [],
@@ -673,28 +674,162 @@
             "type": "cloudwatch",
             "uid": "cloudwatch"
           },
-          "dimensions": {
-            "DBClusterIdentifier": "mavis-$environment",
-            "Role": "*"
-          },
-          "expression": "",
+          "dimensions": {},
+          "expression": "fields @timestamp, @message\n| parse \"duration: * ms\" as duration_ms\n| filter duration_ms > 1000\n| stats count() by bin(5m)",
           "id": "",
           "label": "",
-          "logGroups": [],
+          "logGroups": [
+            {
+              "arn": "$DBLogGroup",
+              "name": "$DBLogGroup"
+            }
+          ],
           "matchExact": true,
           "metricEditorMode": 0,
-          "metricName": "Deadlocks",
+          "metricName": "",
           "metricQueryType": 0,
-          "namespace": "AWS/RDS",
+          "namespace": "",
           "period": "",
-          "queryMode": "Metrics",
+          "queryMode": "Logs",
           "refId": "A",
-          "region": "eu-west-2",
-          "statistic": "Maximum"
+          "region": "default",
+          "sqlExpression": "",
+          "statistic": "Average",
+          "statsGroups": [
+            "bin(5m)"
+          ]
         }
       ],
-      "title": "Deadlocks",
+      "title": "Long query count (5m)",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "left",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "duration"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "amount"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 96
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 153
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 18
+      },
+      "id": 23,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "enablePagination": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "10.4.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "dimensions": {},
+          "expression": "fields @timestamp, @message\n| parse \"duration: * ms  execute *: *\" as duration_ms, command, statement\n| filter duration_ms > 1000\n| stats avg(duration_ms) as duration, count() as total by statement\n| sort duration desc\n| display duration, total, statement\n| limit 20",
+          "id": "",
+          "label": "",
+          "logGroups": [
+            {
+              "arn": "$DBLogGroup",
+              "name": "$DBLogGroup"
+            }
+          ],
+          "matchExact": true,
+          "metricEditorMode": 0,
+          "metricName": "",
+          "metricQueryType": 0,
+          "namespace": "",
+          "period": "",
+          "queryMode": "Logs",
+          "refId": "A",
+          "region": "default",
+          "sqlExpression": "",
+          "statistic": "Average",
+          "statsGroups": [
+            "statement"
+          ]
+        }
+      ],
+      "title": "Average query duration (ms)",
+      "type": "table"
     },
     {
       "datasource": {
@@ -751,18 +886,17 @@
                 "value": 80
               }
             ]
-          },
-          "unit": "short"
+          }
         },
         "overrides": []
       },
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 18
+        "x": 0,
+        "y": 26
       },
-      "id": 2,
+      "id": 25,
       "options": {
         "legend": {
           "calcs": [],
@@ -781,27 +915,249 @@
             "type": "cloudwatch",
             "uid": "cloudwatch"
           },
-          "dimensions": {
-            "DBClusterIdentifier": "mavis-$environment",
-            "Role": "*"
-          },
-          "expression": "",
+          "dimensions": {},
+          "expression": "fields @timestamp, @message\n| filter @message like \"deadlock detected\"\n| stats count() as deadlocks by bin(5m) ",
           "id": "",
           "label": "",
-          "logGroups": [],
+          "logGroups": [
+            {
+              "arn": "$DBLogGroup",
+              "name": "$DBLogGroup"
+            }
+          ],
           "matchExact": true,
           "metricEditorMode": 0,
-          "metricName": "DatabaseConnections",
+          "metricName": "",
           "metricQueryType": 0,
-          "namespace": "AWS/RDS",
+          "namespace": "",
           "period": "",
-          "queryMode": "Metrics",
+          "queryMode": "Logs",
           "refId": "A",
-          "region": "eu-west-2",
-          "statistic": "Average"
+          "region": "default",
+          "sqlExpression": "",
+          "statistic": "Average",
+          "statsGroups": [
+            "bin(5m)"
+          ]
         }
       ],
-      "title": "Database Connections",
+      "title": "Deadlock count (5m)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "duration_ms"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 131
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 26
+      },
+      "id": 22,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "10.4.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "dimensions": {},
+          "expression": "fields @timestamp, @message\n| parse \"duration: * ms  execute *: *\" as duration_ms, command, statement\n| filter duration_ms > 1000\n| display duration_ms, statement\n| sort duration_ms desc",
+          "id": "",
+          "label": "",
+          "logGroups": [
+            {
+              "arn": "$DBLogGroup",
+              "name": "$DBLogGroup"
+            }
+          ],
+          "matchExact": true,
+          "metricEditorMode": 0,
+          "metricName": "",
+          "metricQueryType": 0,
+          "namespace": "",
+          "period": "",
+          "queryMode": "Logs",
+          "refId": "A",
+          "region": "default",
+          "sqlExpression": "",
+          "statistic": "Average",
+          "statsGroups": []
+        }
+      ],
+      "title": "Longest individual queries",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 34
+      },
+      "id": 24,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "10.4.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "dimensions": {},
+          "expression": "fields @timestamp, @message\n| filter @message like \":ERROR:\"\n| parse @message \":ERROR: *\" as statment\n| filter statment not like \"deadlock detected\"\n| stats count() by statment, bin(5m)",
+          "id": "",
+          "label": "",
+          "logGroups": [
+            {
+              "arn": "$DBLogGroup",
+              "name": "$DBLogGroup"
+            }
+          ],
+          "matchExact": true,
+          "metricEditorMode": 0,
+          "metricName": "",
+          "metricQueryType": 0,
+          "namespace": "",
+          "period": "",
+          "queryMode": "Logs",
+          "refId": "A",
+          "region": "default",
+          "sqlExpression": "",
+          "statistic": "Average",
+          "statsGroups": [
+            "statment",
+            "bin(5m)"
+          ]
+        }
+      ],
+      "title": "Errors from Log",
       "type": "timeseries"
     },
     {
@@ -810,7 +1166,235 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 26
+        "y": 42
+      },
+      "id": 18,
+      "panels": [
+        {
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 42
+          },
+          "id": 9,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "cloudwatch",
+                "uid": "cloudwatch"
+              },
+              "dimensions": {
+                "DBClusterIdentifier": "mavis-$environment",
+                "Role": "*"
+              },
+              "expression": "",
+              "id": "",
+              "label": "",
+              "logGroups": [],
+              "matchExact": true,
+              "metricEditorMode": 0,
+              "metricName": "Deadlocks",
+              "metricQueryType": 0,
+              "namespace": "AWS/RDS",
+              "period": "",
+              "queryMode": "Metrics",
+              "refId": "A",
+              "region": "eu-west-2",
+              "statistic": "Maximum"
+            }
+          ],
+          "title": "Deadlocks",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 42
+          },
+          "id": 2,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "cloudwatch",
+                "uid": "cloudwatch"
+              },
+              "dimensions": {
+                "DBClusterIdentifier": "mavis-$environment",
+                "Role": "*"
+              },
+              "expression": "",
+              "id": "",
+              "label": "",
+              "logGroups": [],
+              "matchExact": true,
+              "metricEditorMode": 0,
+              "metricName": "DatabaseConnections",
+              "metricQueryType": 0,
+              "namespace": "AWS/RDS",
+              "period": "",
+              "queryMode": "Metrics",
+              "refId": "A",
+              "region": "eu-west-2",
+              "statistic": "Average"
+            }
+          ],
+          "title": "Database Connections",
+          "type": "timeseries"
+        }
+      ],
+      "title": "Blockers and Connections",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 43
       },
       "id": 17,
       "panels": [
@@ -861,8 +1445,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -878,7 +1461,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 19
+            "y": 43
           },
           "id": 12,
           "options": {
@@ -969,8 +1552,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -986,7 +1568,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 19
+            "y": 43
           },
           "id": 11,
           "options": {
@@ -1077,8 +1659,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -1094,7 +1675,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 27
+            "y": 51
           },
           "id": 5,
           "options": {
@@ -1209,8 +1790,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -1226,7 +1806,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 27
+            "y": 51
           },
           "id": 10,
           "options": {
@@ -1316,8 +1896,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -1333,7 +1912,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 35
+            "y": 59
           },
           "id": 14,
           "options": {
@@ -1423,8 +2002,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -1440,7 +2018,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 35
+            "y": 59
           },
           "id": 15,
           "options": {
@@ -1530,8 +2108,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -1547,7 +2124,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 43
+            "y": 67
           },
           "id": 6,
           "options": {
@@ -1625,7 +2202,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 27
+        "y": 44
       },
       "id": 19,
       "panels": [
@@ -1676,8 +2253,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -1693,7 +2269,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 20
+            "y": 44
           },
           "id": 20,
           "options": {
@@ -1748,9 +2324,9 @@
     "list": [
       {
         "current": {
-          "selected": true,
-          "text": "qa",
-          "value": "qa"
+          "selected": false,
+          "text": "performance",
+          "value": "performance"
         },
         "datasource": {
           "type": "cloudwatch",
@@ -1775,6 +2351,27 @@
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "/aws/rds/cluster/mavis-performance/postgresql",
+          "value": "/aws/rds/cluster/mavis-performance/postgresql"
+        },
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "DBLogGroup",
+        "options": [
+          {
+            "selected": false,
+            "text": "/aws/rds/cluster/mavis-qa/postgresql",
+            "value": "/aws/rds/cluster/mavis-qa/postgresql"
+          }
+        ],
+        "query": "/aws/rds/cluster/mavis-$environment/postgresql",
+        "skipUrlSync": false,
+        "type": "custom"
       }
     ]
   },
@@ -1786,6 +2383,6 @@
   "timezone": "",
   "title": "Mavis Database",
   "uid": "mavis-database",
-  "version": 40,
+  "version": 8,
   "weekStart": ""
 }

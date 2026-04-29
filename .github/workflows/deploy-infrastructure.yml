@@ -1,5 +1,5 @@
 name: Deploy infrastructure
-run-name: Deploy infrastructure for ${{ inputs.environment }}
+run-name: Deploy ${{ inputs.git_ref_to_deploy || github.ref_name }} to ${{ inputs.environment }}
 on:
   workflow_call:
     inputs:
